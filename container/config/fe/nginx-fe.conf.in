@@ -82,16 +82,21 @@ server {
     }
 
     location /h {
-             return 302 ${D}scheme://${D}http_host/h/;
+        return 302 ${D}scheme://${D}http_host/h/;
     }
     
     location /h/ {
-             include /etc/nginx/shared-conf/oauth-proxy.conf;
-             proxy_set_header Host ${FE_SERVER_NAME};
-             rewrite ^h(/.*)${D} ${D}1;
-             proxy_pass http://h3dmr:${H3DMR_PORT};
-             access_log /var/log/nginx/h3dmr.access.log combined;
-    }            
+        include /etc/nginx/shared-conf/oauth-proxy.conf;
+        proxy_pass http://h3dmr:${H3DMR_PORT};
+        access_log /var/log/nginx/h3dmr.access.log combined;
+        error_log /var/log/nginx/h3dmr.error.log info;
+    }
+
+    location /h/api/ {
+        proxy_pass http://h3dmr:${H3DMR_PORT};
+        access_log /var/log/nginx/h3dmr.api.access.log combined;
+        error_log /var/log/nginx/h3dmr.api.error.log info;
+    }
 
 __IF${ID_DEV}THEN__
     location /id {
