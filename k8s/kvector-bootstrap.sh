@@ -111,7 +111,7 @@ set -x
 ###
 ### clone code repos
 ###
-git clone ${ANTIQUE_REPO} antique_vector
+git clone ${ANTIQUE_REPO} antique
 git clone ${TEGOLA_REPO} tegola
 
 
