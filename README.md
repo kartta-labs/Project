@@ -22,8 +22,8 @@ Do these things just once to get set up.
 2. Clone this repo and cd into it
 
    ```
-   git clone https://github.com/kartta-labs/project
-   cd project
+   git clone https://github.com/kartta-labs/Project
+   cd Project
    ```
 
 3. Generate a secrets file by running
@@ -193,7 +193,7 @@ the applications, use the docker process described above.
 
 1. Create a new GCP project, or decide on an existing one to use.
 
-2. Clone a fresh copy of this 'project' repo.  This should be a new copy -- not one that you
+2. Clone a fresh copy of this 'Project' repo.  This should be a new copy -- not one that you
    have previously used with docker for local development.
 
 3. Generate a secrets file by running
