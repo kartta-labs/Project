@@ -1,0 +1,15 @@
+#! /bin/bash
+
+. /container/secrets/secrets.env
+
+echo "EDITOR_DB_NAME=${EDITOR_DB_NAME}"
+echo "EDITOR_RAILS_ENV=${EDITOR_RAILS_ENV}"
+
+set -x
+
+echo "*:*:*:karttaweb:${EDITOR_SQL_KARTTAWEB_PASSWORD}" > ~/.pgpass
+#echo "*:*:*:postgres:${EDITOR_SQL_POSTGRES_PASSWORD}" > ~/.pgpass
+chmod 0600 ~/.pgpass
+psql -h ${EDITOR_DB_HOST} -U ${EDITOR_DB_USER} -d postgres -c "drop database ${EDITOR_DB_NAME};"
+bash /container/config/editor/db-initialize
+rm ~/.pgpass

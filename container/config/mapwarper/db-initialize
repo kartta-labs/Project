@@ -1,0 +1,12 @@
+#! /bin/bash
+
+/bin/bash /container/config/mapwarper/create-configs
+
+. /container/secrets/secrets.env
+
+export RAILS_ENV=${MAPWARPER_RAILS_ENV}
+
+cd /app
+
+rake db:create
+rake db:migrate

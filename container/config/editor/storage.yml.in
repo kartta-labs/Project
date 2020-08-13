@@ -1,0 +1,9 @@
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+local:
+  service: GCS
+  credentials: "/container/secrets/editor-service-account.json"
+  project: "${GCP_PROJECT_ID}"
+  bucket: "${EDITOR_BUCKET_NAME}"

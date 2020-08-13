@@ -1,0 +1,13 @@
+development:
+  adapter: postgresql
+  database: editor_development
+  encoding: utf8
+
+production:
+  adapter: postgresql
+  database: ${EDITOR_DB_NAME}
+  host: ${EDITOR_DB_HOST}
+  username: ${EDITOR_DB_USER}
+  password: ${EDITOR_DB_PASSWORD}
+  pool: ${EDITOR_DB_POOL}
+  encoding: utf8

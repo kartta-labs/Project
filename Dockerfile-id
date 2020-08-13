@@ -1,0 +1,16 @@
+FROM node:8
+
+RUN apt-get update -qq
+RUN apt-get install -y emacs
+
+WORKDIR /iD
+
+COPY ./iD /iD
+
+RUN npm install
+
+EXPOSE 8080
+
+RUN npm run all
+
+CMD [ "npm", "start" ]

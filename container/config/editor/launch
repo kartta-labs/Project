@@ -1,0 +1,15 @@
+/bin/rm -f /etc/nginx/sites-enabled/default
+
+/bin/bash /container/config/editor/create-configs
+
+/bin/bash /container/config/editor/precompile-assets
+
+chmod -R a+r /srv/editor-website
+find /srv/editor-website -type d -exec chmod a+x \{\} \;
+chmod -R a+w /srv/editor-website/tmp
+
+echo '###'
+echo '### editor server ready'
+echo '###'
+
+exec nginx -g "daemon off;"

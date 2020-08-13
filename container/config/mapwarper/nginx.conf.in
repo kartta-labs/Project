@@ -1,0 +1,44 @@
+server {
+    listen ${MAPWARPER_PORT};
+    server_name ${MAPWARPER_SERVER_NAME};
+
+    root /app/public;
+
+    # for warper uploads
+    client_max_body_size 10M;
+
+    location /healthz {
+      return 200 "ok\n";
+    }
+
+    #  this is now in fe nginx conf:
+    #location ${MAPWARPER_SITE_PREFIX} {
+    #    return 302 ${MAPWARPER_SITE_PREFIX}/;
+    #}
+
+    location ${MAPWARPER_SITE_PREFIX}/ {
+        proxy_pass http://localhost:${MAPWARPER_INTERNAL_PORT};
+        proxy_redirect off;
+        proxy_set_header X-Forwarded-Host ${D}host;
+        proxy_set_header Host "${MAPWARPER_SERVER_NAME}";
+        proxy_set_header X-Forwarded-For ${D}proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP ${D}remote_addr;
+    }
+
+    # rails wants to handle this mess
+    # location ~ ^/w/assets/(.*)${D} {
+    #        root /home/rkiveris/src/mapwarper-dev/mapwarper;
+    #         try_files /public/assets/${D}1 /app/assets/${D}1 /vendor/assets/${D}1 =404;
+    # }
+    location ${MAPWARPER_SITE_PREFIX}/uploads/ {
+        rewrite ^${MAPWARPER_SITE_PREFIX}(/.*)${D} ${D}1;
+        try_files ${D}uri =404;
+    }
+
+    location ${MAPWARPER_SITE_PREFIX}/admin/api/v1/ {
+        # disallow access to this from the external facing port; note it's still accessible internally
+        # at port ${MAPWARPER_INTERNAL_PORT}.
+        return 404;
+    }
+
+}

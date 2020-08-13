@@ -1,0 +1,6 @@
+. /container/secrets/secrets.env
+
+echo "*:*:*:karttaweb:${EDITOR_SQL_KARTTAWEB_PASSWORD}" > ~/.pgpass
+chmod 0600 ~/.pgpass
+bash /container/config/editor/db-initialize
+rm ~/.pgpass

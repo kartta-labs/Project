@@ -1,0 +1,80 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tegola
+  labels:
+    app: tegola
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tegola
+  strategy: 
+    type: RollingUpdate
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: tegola
+    spec:
+      containers:
+        - name: tegola
+          image: gcr.io/${GCP_PROJECT_ID}/tegola-cb:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh"]
+          args: ["/container/config/tegola/launch"]
+          #command: ["tail"]
+          #args: ["-f", "/dev/null"]
+          ports:
+            - containerPort: 8088
+          resources:
+            limits:
+              cpu: 1.5
+            requests:
+              cpu: 500m 
+          livenessProbe:
+            tcpSocket:
+              port: 8088
+            initialDelaySeconds: 8
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8088
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: container-tools
+              mountPath: /container/tools
+              readOnly: true
+            - name: container-config-tegola
+              mountPath: container/config/tegola
+              readOnly: true
+            - name: container-secrets
+              mountPath: /container/secrets
+              readOnly: true
+      volumes:
+        - name: container-tools
+          configMap:
+            name: container-tools
+        - name: container-config-tegola
+          configMap:
+            name: container-config-tegola
+        - name: container-secrets
+          secret:
+            secretName: container-secrets

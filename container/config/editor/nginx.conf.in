@@ -1,0 +1,41 @@
+server {
+    listen ${EDITOR_PORT};
+    server_name ${EDITOR_SERVER_NAME};
+
+    root /srv/editor-website/public;
+
+    location /healthz {
+      return 200 "ok\n";
+    }
+
+    #  this is now in fe nginx conf:
+    #location /e {
+    #    return 302 ${D}scheme://${D}http_host/e/;
+    #    #return 302 /e/;
+    #}
+    location /e/ {
+        proxy_pass http://localhost:3600;
+        proxy_redirect off;
+        proxy_set_header X-Forwarded-Host ${D}host;
+        proxy_set_header Host "${EDITOR_SERVER_NAME}";
+        proxy_set_header X-Forwarded-For ${D}proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP ${D}remote_addr;
+    }
+    location /e/assets/ {
+        try_files ${D}uri =404;
+    }
+
+}
+
+server {
+    listen 3600;
+
+    server_name ${EDITOR_SERVER_NAME};
+
+    root /srv/editor-website/public;
+
+    location / {
+        passenger_enabled on;
+        access_log /var/log/nginx/internal.access.log combined;
+    }
+}

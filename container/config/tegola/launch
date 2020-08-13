@@ -1,0 +1,10 @@
+. /container/secrets/secrets.env
+
+exec env -i - \
+  DB_HOST=${TEGOLA_DB_HOST} \
+  DB_PORT="5432" \
+  DB_NAME="antique" \
+  DB_USER="tegola" \
+  DB_PASSWORD="${TEGOLA_TEGOLA_PASSWORD}" \
+  REDIS_ADDRESS="${TEGOLA_REDIS_ADDRESS}" \
+  /opt/tegola serve --config /container/config/tegola/tegola-config.toml

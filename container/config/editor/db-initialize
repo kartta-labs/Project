@@ -1,0 +1,16 @@
+#! /bin/bash
+
+/bin/bash /container/config/editor/create-configs
+. /container/secrets/secrets.env
+
+export RAILS_ENV=${EDITOR_RAILS_ENV}
+
+cd /srv/editor-website
+
+bundle exec rake db:create
+psql -h ${EDITOR_DB_HOST} -d editor_${RAILS_ENV} -U ${EDITOR_DB_USER} -c 'create extension btree_gist;'
+psql -h ${EDITOR_DB_HOST} -d editor_${RAILS_ENV} -U ${EDITOR_DB_USER} -f ./db/functions/sql/maptile_for_point.sql
+psql -h ${EDITOR_DB_HOST} -d editor_${RAILS_ENV} -U ${EDITOR_DB_USER} -f ./db/functions/sql/tile_for_point.sql
+psql -h ${EDITOR_DB_HOST} -d editor_${RAILS_ENV} -U ${EDITOR_DB_USER} -f ./db/functions/sql/xid_to_int4.sql
+bundle exec rake db:migrate
+

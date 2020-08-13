@@ -1,0 +1,41 @@
+# docker build -t mapwarper:latest -f Dockerfile-mapwarper .
+
+FROM ubuntu:18.04
+
+RUN apt-get update -qq && apt-get install -y build-essential ruby-dev nodejs git libpq-dev postgresql-client ruby-mapscript zlib1g-dev liblzma-dev imagemagick gdal-bin curl gnupg python-pip logrotate nginx-full emacs iputils-ping gettext-base
+
+RUN pip install -U pillow modestmaps google-cloud-storage
+
+## install gcsfuse for use mounting cloud storage 
+RUN echo "deb http://packages.cloud.google.com/apt gcsfuse-bionic main" | tee /etc/apt/sources.list.d/gcsfuse.list
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+RUN apt-get update -qq && apt-get install -y gcsfuse
+
+#for 18.04 we need to loosen up the imagemagick policy limits
+COPY ./mapwarper/config/imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
+
+#copy log rotate 
+COPY ./mapwarper/config/mapwarper.logrotate /etc/logrotate.d/mapwarper
+RUN chmod 0644 /etc/logrotate.d/mapwarper
+
+RUN mkdir -p /app
+
+WORKDIR /app
+
+COPY ./mapwarper/Gemfile  Gemfile
+COPY ./mapwarper/Gemfile.lock Gemfile.lock
+
+RUN gem install bundler -v=1.17.3 
+
+RUN gem install bundle
+RUN gem update --system
+RUN bundle update --bundler
+RUN bundle install
+
+COPY ./mapwarper .
+
+RUN bash ./lib/cloudbuild/copy_configs.sh
+
+RUN bundle exec rake assets:precompile RAILS_ENV=production SECRET_KEY_BASE=dummytokenforbuild
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

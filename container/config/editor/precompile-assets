@@ -1,0 +1,8 @@
+cd /srv/editor-website
+
+. /container/secrets/secrets.env
+
+export RAILS_ENV=${EDITOR_RAILS_ENV}
+
+rake assets:clobber
+rake i18n:js:export assets:precompile

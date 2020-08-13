@@ -1,0 +1,64 @@
+#! /bin/bash
+#
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# usage:
+#   subst ENV_FILE  INPUT_1 OUTPUT_1  INPUT_2 OUTPUT_2 [...]
+#
+# Loads environment variable settings from ENV_FILE, and iterates over pairs of
+# INPUT/OUTPUT files, copying each INPUT to the corresponding OUTPUT,
+# substituting any expressions of the form $VAR or ${VAR} in INPUT with the
+# value of VAR from the environment.
+#
+# If an expression of the form $VAR or ${VAR} appears in INPUT for a VAR that is
+# not defined, the empty string is substituted.
+#
+# Note that any values present in the current environment are used, as well as
+# any that are set in ENV_FILE; values in ENV_FILE will override any current
+# settings.
+#
+# Also defines a special variable named D whose value is $; this should be used
+# in any INPUT file where a $ is needed.  (There is no way to escape a $; put
+# ${D} in the INPUT file instead).
+#
+# Also provides for a crude conditional inclusion mechanism that works as
+# follows:
+#
+# Sections of content between lines of the form
+# __IF${NAME}THEN__
+# __ENDIF__
+# will be included in the output if there is an environment variable in ENV_FILE
+# named NAME with a value that is anything other than the empty string.  If NAME
+# is not defined or the empty string, the content between these lines will be
+# omitted from the output.  In any case, regardless of the value of NAME, the
+# __IF${NAME}THEN__ and __ENDIF__ lines will be omitted from the output.  The
+# __IF${NAME}THEN__ and __ENDIF__ expressions must appear on lines by
+# themselves, with no leading or trailing whitespace or any other text.  The
+# value of NAME should never include newlines.
+
+source $1
+shift
+
+export D=\$
+
+while (( "$#" )); do
+  envsubst < "$1" \
+    | sed '/^__IFTHEN__$/,/^__ENDIF__$/d' \
+    | sed '/^__IF.*THEN__$/d' \
+    | sed '/^__ENDIF__$/d' \
+    > "$2"
+  shift
+  shift
+done

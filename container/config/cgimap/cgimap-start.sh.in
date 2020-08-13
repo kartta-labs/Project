@@ -1,0 +1,22 @@
+#! /bin/bash
+
+cd /srv/openstreetmap-cgimap
+
+PID=${D}${D}
+echo ${D}{PID} > /cgimap.pid
+
+# Ugh.  Start cgimap using "env -i" to clear out all envioronment vars other
+# than the ones explicitly set here, because it will crash with a cryptic
+# 'unrecognized option' exception if any environment variable starting with
+# "CGIMAP_" other than the ones it expects is set.  Kubernetes sets all kinds of
+# environment whose name starts with "CGIMAP_", since we're using that as the
+# name of several resources (deployment, image, service, etc).
+exec env -i - \
+  CGIMAP_BACKEND="apidb" \
+  CGIMAP_DBNAME="${CGIMAP_DB_NAME}" \
+  CGIMAP_USERNAME="${CGIMAP_DB_USER}" \
+  CGIMAP_LOGFILE="/var/log/cgimap.log" \
+  CGIMAP_SOCKET=":${CGIMAP_PORT}" \
+  CGIMAP_HOST="${CGIMAP_DB_HOST}" \
+  CGIMAP_PASSWORD="${CGIMAP_DB_PASSWORD}" \
+  /srv/openstreetmap-cgimap/openstreetmap-cgimap

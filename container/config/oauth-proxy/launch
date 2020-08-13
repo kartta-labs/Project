@@ -1,0 +1,7 @@
+/bin/rm -f /src/oauth2_proxy.cfg
+
+/bin/bash /container/tools/subst \
+  /container/secrets/secrets.env \
+  /container/config/oauth-proxy/oauth2_proxy.cfg.in /src/oauth2_proxy.cfg
+
+exec /root/go/bin/oauth2-proxy -config=/src/oauth2_proxy.cfg

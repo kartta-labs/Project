@@ -1,0 +1,35 @@
+#! /bin/bash
+#
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# usage:
+#   ksubst FILE
+# Prints the contents of FILE on stdout, after substituting all environment variables
+# in the file with their values.  Reads environment variables in the secrets file below
+# (in addition to any defined in the current environemtn).
+# Output goes to stdout.
+
+SECRETS_ENV_FILE="./container/secrets/secrets.env"
+
+if [ \! -f "${SECRETS_ENV_FILE}" ] ; then
+  echo "Before continuing you should create the file ${SECRETS_ENV_FILE}"
+  exit -1
+fi
+
+source ${SECRETS_ENV_FILE}
+
+export D=\$
+
+envsubst < "$1"  

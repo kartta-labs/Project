@@ -1,0 +1,75 @@
+defaults: &defaults
+  site_prefix: "${MAPWARPER_SITE_PREFIX}"
+  signup_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}${EDITOR_SITE_PREFIX}/user/new"
+  signout_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}${EDITOR_SITE_PREFIX}/logout"
+  trace_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}${EDITOR_SITE_PREFIX}/edit#map="
+  # make sure this ends with a /
+  profile_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}${EDITOR_SITE_PREFIX}/user/"
+  email: example_user@example.com
+  addthis_twitter_user: example_user@example.com
+  addthis_user: example_user
+  google_analytics_code:
+  google_analytics_cookie_path:  ""
+  src_maps_dir: 
+  dst_maps_dir: 
+  map_mask_dir: 
+  tileindex_dir: 
+  mapzen_key: "ABC"
+  geocode_country: ""
+  geoparse_geocodexyz_key: ""
+  geoparse_region: ""
+  geoparse_enable: false
+  host: "localhost:3000"
+  site_name: "mapwarper"
+  host_with_scheme: "http://localhost:3000"
+  full_site_name: "MapWarper.net"
+  reply_to: "example@example.com"
+  id_key: ""
+  id_secret: ""
+  mapbox_access_token: ""
+  localeapp_api_key: ""
+  import_maps_sftp_path: "/home/sftpuser/maps"
+  #gdal_path: "/home/fwtools/bin_safe/"
+  gdal_path: ""
+  gdal_memory_limit: ""
+  disabled_site: false
+  google_storage_enabled: false
+  google_json_key_location: ""
+  google_storage_project: ""
+  google_storage_bucket: ""
+  public_shared_dir: ""  #used when saving to a shared directory (e.g. shared_uploads_dir: "shared" for RAILS_ROOT/public/shared/ which can be mounted as a volume via k8s ) 
+  debug_k8s: false
+  google_maps_key: ""
+  enable_google_satellite: false
+  sendgrid_api_key: ""
+  nypl_repo_token: ""
+  enable_throttling: "false"  #should be a string not boolean
+  throttle_limit: 30
+  throttle_period: 60
+  throttle_safelist_ips: #"127.0.0.1,192.168.0.1" #comma separated
+  google_tiles_bucket: ""
+  cdn_tiles_host:  ""  #e.g. https://tiles.example.com
+  smtp_address: 
+  smtp_port:
+  smtp_username:
+  smtp_password:
+  enable_ocr_job: "false"  #set to "true" to enable the OCR and geocoding job upon map creation
+  ocr_bucket: "" # name of the bucket to store images for OCR processing, should be globablly unique
+  force_ssl: "false"  #set to "false" to disable ssl or "true" 
+  
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+  email: test_user@example.com
+  public_shared_dir: "test"
+  import_maps_sftp_path: "test/fixtures/data/imports/images"
+
+production:
+  <<: *defaults
+  email: production_user@example.com
+  src_maps_dir: "/var/etc/maps/src/"
+  dst_maps_dir: "/var/etc/maps/dst/"
+  force_ssl: "false"  #set to "true" to force ssl in production mode 

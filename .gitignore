@@ -1,0 +1,19 @@
+/editor-website
+/iD
+/mapwarper
+/openstreetmap-cgimap
+/container/secrets/secrets.env
+/.docker-compose.yml
+/tmp
+/h3dmr
+/tegola
+/antique_vector
+/bootstrap.log
+/kbootstrap.log
+/kvector-bootstrap.log
+*~
+#*#
+# tegola-config.toml and osm2pgsql.style are part of the 'antique' repo and
+# get copied (by ./k8s/resecret) to this location:
+/container/config/tegola/tegola-config.toml
+/container/config/tegola/osm2pgsql.style

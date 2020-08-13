@@ -1,0 +1,62 @@
+. /container/secrets/secrets.env
+
+echo "*:*:*:tegola:${TEGOLA_TEGOLA_PASSWORD}" > ~/.pgpass
+chmod 0600 ~/.pgpass
+
+set -x
+
+psql -h ${TEGOLA_DB_HOST} -U tegola -d antique -c 'create extension postgis;'
+psql -h ${TEGOLA_DB_HOST} -U tegola -d antique -c 'create extension hstore;'
+
+###
+### this assumes /tmp/natural_earth_vector.sqlite
+###
+ogr2ogr -nlt GEOMETRY \
+  -s_srs EPSG:4326 \
+  -t_srs EPSG:3857 \
+  -progress \
+  -skipfailures \
+  -overwrite \
+  -lco PRECISION=no \
+  -lco GEOMETRY_NAME=geom \
+  -lco DIM=2 \
+  -clipsrc -180.1 -85.0511 180.1 85.0511 \
+  -f PostgreSQL PG:"dbname='antique' host='${TEGOLA_DB_HOST}'  port='5432' user='tegola' password='${TEGOLA_TEGOLA_PASSWORD}'" \
+  /tmp/natural_earth_vector.sqlite
+
+###
+### this assumes /tmp/natural_earth_edits.tgz exists
+###
+
+cd /tmp
+tar xvfz natural_earth_edits.tgz
+
+cd /tmp/natural_earth_edits/ne_50m_ocean_gridded
+ogr2ogr -nlt GEOMETRY \
+  -s_srs EPSG:4326 \
+  -t_srs EPSG:3857 \
+  -progress \
+  -skipfailures \
+  -overwrite \
+  -lco PRECISION=no \
+  -lco GEOMETRY_NAME=geom \
+  -lco DIM=2 \
+  -clipsrc -180.1 -85.0511 180.1 85.0511 \
+  -f PostgreSQL PG:"dbname='antique' host='${TEGOLA_DB_HOST}'  port='5432' user='tegola' password='${TEGOLA_TEGOLA_PASSWORD}'" \
+  ne_50m_ocean_gridded.shp
+
+cd /tmp/natural_earth_edits/ne_10m_ocean_gridded_edited
+ogr2ogr -nlt GEOMETRY \
+  -s_srs EPSG:4326 \
+  -t_srs EPSG:3857 \
+  -progress \
+  -skipfailures \
+  -overwrite \
+  -lco PRECISION=no \
+  -lco GEOMETRY_NAME=geom \
+  -lco DIM=2 \
+  -clipsrc -180.1 -85.0511 180.1 85.0511 \
+  -f PostgreSQL PG:"dbname='antique' host='${TEGOLA_DB_HOST}'  port='5432' user='tegola' password='${TEGOLA_TEGOLA_PASSWORD}'" \
+  ne_10m_ocean_gridded_edited.shp
+
+/bin/rm -f ~/.pgpass

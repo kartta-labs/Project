@@ -1,0 +1,7 @@
+/bin/bash /container/tools/subst \
+  /container/secrets/secrets.env \
+  /container/config/cgimap/cgimap-start.sh.in       /srv/cgimap-start.sh
+
+chmod +x /srv/cgimap-start.sh
+
+exec /srv/cgimap-start.sh

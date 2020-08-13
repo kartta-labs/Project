@@ -1,0 +1,11 @@
+version: '3.3'
+
+# TLDR; If you want to run a subproject within a subdirectory with the same
+# root-path set as if running all services from this directory, include this
+# file in your docker-compose commands. E.g.,
+# `docker-compse -f docker-compose.empty.yml -f ./h3dmr/docker-compose.yml
+# 
+# This is an empty docker compose file to enforce that the top level
+# Project directory is the root of any docker-compose commands that contain
+# docker-compose.yml configs in subprojects and subdirectories.
+#

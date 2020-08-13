@@ -1,0 +1,37 @@
+#--id_key: ""
+#--oauth_key: ""
+#--server_url: "localhost:3000"
+#--google_auth_id: ""
+#--google_auth_secret: ""
+#--google_openid_realm: "http://localhost:3000"
+#--generator: "Kartta Labs Editor Server"
+#--support_email: "someone@example.com"
+#--email_from: "someone@example.com"
+#--email_return_path: "someone@example.com"
+#--sendgrid_api_key: ""
+#--storage_url : "https://storage.googleapis.com"
+
+site_host: "${EDITOR_SERVER_NAME}"
+
+site_prefix: "${EDITOR_SITE_PREFIX}"
+sign_out_path: "/oauth2/sign_out"
+
+other_user_db_update_url: "${EDITOR_OTHER_USER_DB_UPDATE_URL}"
+other_user_db_delete_url: "${EDITOR_OTHER_USER_DB_DELETE_URL}"
+
+storage_url : "https://storage.googleapis.com"
+server_url: "${EDITOR_SERVER_URL}"
+
+generator: "local server"
+
+support_email: "${EDITOR_SUPPORT_EMAIL}"
+
+email_from: "${EDITOR_SUPPORT_EMAIL}"
+email_return_path: "${EDITOR_SUPPORT_EMAIL}"
+sendgrid_api_key: "${EDITOR_SENDGRID_API_KEY}"
+
+# insert the value of the OAuth consumer key for the iD editor (delimited by quotes) here:
+id_key: "xxxxxxxx"
+
+# nominatim_url: "????"
+oauth_key: "xxxxxxxx"

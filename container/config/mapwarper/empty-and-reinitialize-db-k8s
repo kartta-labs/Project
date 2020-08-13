@@ -1,0 +1,25 @@
+. /container/secrets/secrets.env
+
+set -x
+
+echo "*:*:*:postgres:${MAPWARPER_POSTGRES_PASSWORD}" > ~/.pgpass
+chmod 0600 ~/.pgpass
+
+psql -U postgres -h ${MAPWARPER_DB_HOST} -d postgres -c "drop database ${MAPWARPER_DB_NAME};"
+psql -U postgres -h ${MAPWARPER_DB_HOST} -d postgres -c "create database ${MAPWARPER_DB_NAME};"
+
+psql -U postgres -h ${MAPWARPER_DB_HOST} -d ${MAPWARPER_DB_NAME} <<EOF
+\c ${MAPWARPER_DB_NAME};
+create extension postgis;
+EOF
+
+/bin/bash /container/config/mapwarper/create-configs
+
+export RAILS_ENV=${MAPWARPER_RAILS_ENV}
+export SECRET_KEY_BASE="${MAPWARPER_SECRET_KEY_BASE}"
+
+cd /app
+
+rake db:migrate
+
+rm ~/.pgpass

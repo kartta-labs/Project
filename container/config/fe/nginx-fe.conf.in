@@ -1,0 +1,110 @@
+server {
+    listen ${FE_PORT};
+    server_name ${FE_SERVER_NAME};
+
+    root /srv/public;
+
+    # for warper uploads
+    client_max_body_size ${FE_CLIENT_MAX_BODY_SIZE};
+
+    location /healthz {
+      return 200 "ok\n";
+    }
+
+    #
+    # oauth endpoints routed to oauth-proxy:4180
+    #
+    location /oauth2/ {
+        proxy_pass http://oauth-proxy:4180;
+        proxy_set_header Host                    ${D}host;
+        proxy_set_header X-Real-IP               ${D}remote_addr;
+        proxy_set_header X-Scheme                ${D}scheme;
+        proxy_set_header X-Auth-Request-Redirect ${D}request_uri;
+        # or, if you are handling multiple domains:
+        #     # proxy_set_header X-Auth-Request-Redirect ${D}scheme://${D}host${D}request_uri;
+    }
+    location /oauth2/auth {
+        proxy_pass       http://oauth-proxy:4180;
+        proxy_set_header Host             ${D}host;
+        proxy_set_header X-Real-IP        ${D}remote_addr;
+        proxy_set_header X-Scheme         ${D}scheme;
+        # nginx auth_request includes headers but not body
+        proxy_set_header Content-Length   "";
+        proxy_pass_request_body           off;
+    }
+
+    #
+    # requests from iD editor routed to cgimap:8000 via fastcgi
+    #
+    location ~ ^${EDITOR_SITE_PREFIX}/api/0\.6/map.*${D} {
+        include /etc/nginx/shared-conf/oauth-proxy.conf;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_pass cgimap:8000;
+        access_log /var/log/nginx/api.map.access.log combined;
+    }
+    location ~ ^${EDITOR_SITE_PREFIX}/api/0\.6/changeset/.*${D} {
+        include /etc/nginx/shared-conf/oauth-proxy.conf;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_pass cgimap:8000;
+        access_log /var/log/nginx/api.changeset.access.log combined;
+    }
+    location ~ ^${EDITOR_SITE_PREFIX}/api/0\.6/(node|way|relation)/[0-9]+${D} {
+        include /etc/nginx/shared-conf/oauth-proxy.conf;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_pass cgimap:8000;
+        access_log /var/log/nginx/api.n-w-r.access.log combined;
+    }
+
+    #
+    # all other ${EDITOR_SITE_PREFIX} requests routed to editor
+    #
+    location ${EDITOR_SITE_PREFIX} {
+        return 302 ${D}scheme://${D}http_host${EDITOR_SITE_PREFIX}/;
+    }
+    location ${EDITOR_SITE_PREFIX}/ {
+        include /etc/nginx/shared-conf/oauth-proxy.conf;
+        proxy_set_header Host ${FE_SERVER_NAME};
+        proxy_pass http://editor:${EDITOR_PORT};
+        access_log /var/log/nginx/editor.access.log combined;
+    }
+
+    #
+    # ${MAPWARPER_SITE_PREFIX} requests routed to mapwarper
+    #
+    location ${MAPWARPER_SITE_PREFIX} {
+        return 302 ${D}scheme://${D}http_host${MAPWARPER_SITE_PREFIX}/;
+    }
+    location ${MAPWARPER_SITE_PREFIX}/ {
+        include /etc/nginx/shared-conf/oauth-proxy.conf;
+        proxy_set_header Host ${FE_SERVER_NAME};
+        proxy_pass http://mapwarper:${MAPWARPER_PORT};
+        access_log /var/log/nginx/mapwarper.access.log combined;
+    }
+
+    location /h {
+             return 302 ${D}scheme://${D}http_host/h/;
+    }
+    
+    location /h/ {
+             include /etc/nginx/shared-conf/oauth-proxy.conf;
+             proxy_set_header Host ${FE_SERVER_NAME};
+             rewrite ^h(/.*)${D} ${D}1;
+             proxy_pass http://h3dmr:${H3DMR_PORT};
+             access_log /var/log/nginx/h3dmr.access.log combined;
+    }            
+
+__IF${ID_DEV}THEN__
+    location /id {
+             return 302 ${D}scheme://${D}http_host/id/;
+    }
+    location /id/ {
+             include /etc/nginx/shared-conf/oauth-proxy.conf;
+             rewrite /id(/.*) /${D}1 break;
+             proxy_pass http://id:8080;
+             proxy_redirect off;
+             proxy_set_header Host ${D}host;
+             access_log /var/log/nginx/id.access.log combined;
+    }            
+__ENDIF__
+
+}

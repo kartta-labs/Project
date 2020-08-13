@@ -1,0 +1,108 @@
+version: '3.3'
+services:
+  editor-db:
+    image: postgres:11
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./tmp/editor-db:/var/lib/postgresql/data
+
+  oauth-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile-oauth-proxy
+    entrypoint: ["/bin/bash", "/container/config/oauth-proxy/launch"]
+    volumes:
+      - ./container/tools:/container/tools
+      - ./container/secrets:/container/secrets
+      - ./container/config/oauth-proxy:/container/config/oauth-proxy
+    ports:
+      - "4180"
+
+  cgimap:
+    build:
+      context: .
+      dockerfile: Dockerfile-cgimap
+    entrypoint: ["/bin/bash", "/container/config/cgimap/launch"]
+    volumes:
+      - ./container/tools:/container/tools
+      - ./container/secrets:/container/secrets
+      - ./container/config/cgimap:/container/config/cgimap
+    ports:
+      - "${CGIMAP_PORT}"
+    depends_on:
+      - editor-db
+
+  editor:
+    build:
+      context: .
+      dockerfile: Dockerfile-editor
+    entrypoint: ["/bin/bash", "/container/config/editor/launch"]
+    volumes:
+      - ./container/tools:/container/tools
+      - ./container/secrets:/container/secrets
+      - ./container/config/editor:/container/config/editor
+      - ./editor-website/app:/srv/editor-website/app
+    ports:
+      - "${EDITOR_PORT}"
+    depends_on:
+      - editor-db
+
+  mapwarper-db:
+    image: mdillon/postgis
+    volumes:
+      - ./tmp/mapwarper-db:/var/lib/postgresql/data
+
+  redis:
+    image: redis
+
+  mapwarper:
+    build:
+      context: .
+      dockerfile: Dockerfile-mapwarper
+    secrets:                    
+     - bucket-service-account
+    entrypoint: ["/bin/bash", "/container/config/mapwarper/launch"]
+    volumes:
+      - ./container/tools:/container/tools
+      - ./container/secrets:/container/secrets
+      - ./container/config/mapwarper:/container/config/mapwarper
+      - ./mapwarper:/app
+    ports:
+      - "${MAPWARPER_PORT}"
+      - "${MAPWARPER_INTERNAL_PORT}"
+    depends_on:
+      - mapwarper-db
+      - redis
+
+  fe:
+    build:
+      context: .
+      dockerfile: Dockerfile-fe
+    entrypoint: ["/bin/bash", "/container/config/fe/launch"]
+    volumes:
+      - ./container/tools:/container/tools
+      - ./container/secrets:/container/secrets
+      - ./container/config/fe:/container/config/fe
+    ports:
+      - "${HOST_PORT}:${FE_PORT}"
+    depends_on:
+      - oauth-proxy
+      - editor
+      - cgimap
+      - mapwarper
+
+  id:
+    build:
+      context: .
+      dockerfile: Dockerfile-id
+    ports:
+      - "8777:8080"
+    entrypoint: ["/bin/bash", "/iD/launch"]
+    volumes:
+      - ./iD:/iD
+
+secrets:
+  bucket-service-account:
+    file:
+      ./container/secrets/mapwarper-service-account.json

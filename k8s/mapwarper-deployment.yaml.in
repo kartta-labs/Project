@@ -1,0 +1,92 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mapwarper
+  labels:
+    app: mapwarper
+spec:
+  replicas: 1
+  #strategy: 
+  #  type: RollingUpdate
+  #minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: mapwarper
+    spec:
+      # This section describes the containers that make up the deployment
+      containers:
+        - name: mapwarper
+          image: gcr.io/${GCP_PROJECT_ID}/mapwarper:latest
+          #imagePullPolicy: Always
+          command: ["bash"]
+          args: ["/container/config/mapwarper/launch"]
+          ports:
+            - containerPort: ${MAPWARPER_PORT}
+          #resources:
+          #  limits:
+          #    cpu: 1
+          #  requests:
+          #    cpu: 500m
+          livenessProbe:
+            exec:
+              command:
+              - date
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: ${MAPWARPER_PORT}
+            initialDelaySeconds: 45
+          #readinessProbe:
+          #  httpGet:
+          #    path: /healthcheck
+          #    port: 3000
+          #  initialDelaySeconds: 45
+          #  periodSeconds: 20
+          #  timeoutSeconds: 5
+          volumeMounts:
+            - name: mapwarper-filestore-volume
+              mountPath: /mnt/mapwarper/maps
+              subPath: maps
+            - name: mapwarper-filestore-volume
+              mountPath: /app/public/shared
+              subPath: shared
+            - name: container-tools
+              mountPath: /container/tools
+              readOnly: true
+            - name: container-config-mapwarper
+              mountPath: container/config/mapwarper
+              readOnly: true
+            - name: container-secrets
+              mountPath: /container/secrets
+              readOnly: true
+      volumes:
+        - name: mapwarper-filestore-volume
+          persistentVolumeClaim:
+            claimName: mapwarper-fileserver-claim
+            readOnly: false
+        - name: container-tools
+          configMap:
+            name: container-tools
+        - name: container-config-mapwarper
+          configMap:
+            name: container-config-mapwarper
+        - name: container-secrets
+          secret:
+            secretName: container-secrets

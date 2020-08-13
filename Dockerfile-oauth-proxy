@@ -1,0 +1,20 @@
+# docker build -t oauth-proxy:latest -f Dockerfile .
+
+FROM ubuntu:18.04
+
+RUN apt-get update -qq && apt-get install -y golang-go wget git emacs gettext-base
+
+RUN mkdir /src
+RUN cd /src && wget https://dl.google.com/go/go1.14.4.src.tar.gz
+RUN cd /src && tar xf go1.14.4.src.tar.gz
+RUN rm /src/go1.14.4.src.tar.gz
+
+RUN cd /src/go/src && GOROOT_BOOTSTRAP=/usr/bin ./all.bash
+
+# RUN apt remove golang-go # (no longer needed)
+
+RUN cd /src && ./go/bin/go mod init github.com/my/repo #  (initializes module system?)
+RUN cd /src && ./go/bin/go get github.com/oauth2-proxy/oauth2-proxy #  (⇒ ~/go/bin/oauth2-proxy)
+
+# this entrypoint will be overridden by docker-compose or k8s config
+ENTRYPOINT ["tail", "-f", "/dev/null"]

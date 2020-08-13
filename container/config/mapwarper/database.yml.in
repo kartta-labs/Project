@@ -1,0 +1,17 @@
+development:
+  adapter: postgis
+  database: ${MAPWARPER_DB_NAME}
+  host: ${MAPWARPER_DB_HOST}
+  username: ${MAPWARPER_DB_USER}
+  password: ${MAPWARPER_DB_PASSWORD}
+  pool: ${MAPWARPER_DB_POOL}
+  encoding: utf8
+
+production:
+  adapter: postgis
+  database: ${MAPWARPER_DB_NAME}
+  host: ${MAPWARPER_DB_HOST}
+  username: ${MAPWARPER_DB_USER}
+  password: ${MAPWARPER_DB_PASSWORD}
+  pool: ${MAPWARPER_DB_POOL}
+  encoding: utf8

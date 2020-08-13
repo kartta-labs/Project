@@ -1,0 +1,7 @@
+set -x
+
+#  create subdirs of nfs mounted mapwarper-fileserver volume
+mkdir -p /mnt/mapwarper/maps/dst
+mkdir -p /mnt/mapwarper/maps/src
+mkdir -p /mnt/mapwarper/maps/masks
+mkdir -p /mnt/mapwarper/maps/tileindex
