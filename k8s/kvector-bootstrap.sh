@@ -119,7 +119,7 @@ git clone ${TEGOLA_REPO} tegola
 ### build tegola image
 ###
 export TEGOLA_SHORT_SHA=`(cd tegola ; git rev-parse --short HEAD)`
-(cd tegola; gcloud builds submit  "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/tegola" "--substitutions=SHORT_SHA=${TEGOLA_SHORT_SHA}"  --config cloudbuild.yaml .)
+gcloud builds submit  "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/tegola" "--substitutions=SHORT_SHA=${TEGOLA_SHORT_SHA}"  --config k8s/cloudbuild-tegola.yaml
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/tegola-cb:${TEGOLA_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/tegola-cb:latest"
 
 ###
