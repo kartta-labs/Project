@@ -37,9 +37,6 @@ spec:
           - name: container-config-tegola
             mountPath: container/config/tegola
             readOnly: true
-          - name: container-config-pgutil
-            mountPath: container/config/pgutil
-            readOnly: true
           - name: container-secrets
             mountPath: /container/secrets
             readOnly: true
@@ -59,9 +56,6 @@ spec:
       - name: container-config-tegola
         configMap:
           name: container-config-tegola
-      - name: container-config-pgutil
-        configMap:
-          name: container-config-pgutil
       - name: container-secrets
         secret:
           secretName: container-secrets
