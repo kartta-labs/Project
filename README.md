@@ -26,9 +26,10 @@ Do these things just once to get set up.
    cd Project
    ```
 
-3. Generate a secrets file by running
+3. Generate a secrets file by running (optionally in an isolated python environment).
 
    ```
+   pip install -r requirements.txt
    ./makesecrets
    ```
    This will create the file `./container/secrets/secrets.env` by copying `example-secrets.env`.
