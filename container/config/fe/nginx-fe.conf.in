@@ -2,6 +2,12 @@ server {
     listen ${FE_PORT};
     server_name ${FE_SERVER_NAME};
 
+__IF${FORCE_HTTPS}THEN__
+    if (${D}http_x_forwarded_proto = "http") {
+        return 301 https://${D}host${D}request_uri;
+    }
+__ENDIF__
+
     root /srv/public;
 
     # for warper uploads

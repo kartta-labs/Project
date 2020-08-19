@@ -101,21 +101,21 @@ function wait_for_k8s_job {
 }
 
 
-function wait_for_lb_ingress_ip {
+function wait_for_ingress_ip {
   name=$1
   wait_recheck_seconds=5
   wait_max_seconds=300
   seconds_waited=0
   while [ $seconds_waited -le $wait_max_seconds ] ; do 
-    echo "waiting for load balancer ip address to become available (this might take up to 5 minutes)..."
+    echo "waiting for ingress ip address to become available (this might take up to 5 minutes)..."
     sleep $wait_recheck_seconds
     seconds_waited=$[$seconds_waited+$wait_recheck_seconds]
-    LB_IP=$(kubectl get svc ${name} -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    if [ "${LB_IP}" != "" ] ; then
+    INGRESS_IP=$(kubectl get ingress ${name} -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    if [ "${INGRESS_IP}" != "" ] ; then
       return 0
     fi
   done
-  echo "load balancer ip address failed to become available after $wait_max_seconds seconds; giving up"
+  echo "ingress ip address failed to become available after $wait_max_seconds seconds; giving up"
   exit -1
 }
 

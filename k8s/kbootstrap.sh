@@ -38,96 +38,99 @@ fi
 
 . ${secrets_env_file}
 
-# set mapwarper rails env to "production" in secrets file
-add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
-add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
-add_secret ${secrets_env_file} ID_DEV ""
+###done # set mapwarper rails env to "production" in secrets file
+###done add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
+###done add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
+###done add_secret ${secrets_env_file} ID_DEV ""
+###done add_secret ${secrets_env_file} FORCE_HTTPS "true"
+###done 
+###done set -x
+###done 
+###done ###
+###done ### general gcp setup
+###done ###
+###done gcloud config set project ${GCP_PROJECT_ID}
+###done gcloud config set compute/zone ${GCP_ZONE}
+###done gcloud services enable cloudbuild.googleapis.com container.googleapis.com containerregistry.googleapis.com file.googleapis.com redis.googleapis.com servicenetworking.googleapis.com sql-component.googleapis.com sqladmin.googleapis.com storage-api.googleapis.com storage-component.googleapis.com vision.googleapis.com
+###done gcloud container clusters create kartta-cluster1  --zone us-east4 --release-channel stable --enable-ip-alias --machine-type "n1-standard-4" --num-nodes=3
+###done gcloud compute addresses create google-managed-services-default --global --purpose=VPC_PEERING --prefix-length=20 --network=default
+###done gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --network=default --ranges=google-managed-services-default
+###done cloudbuild_logs_bucket_suffix=$(generate_bucket_suffix)
+###done add_secret ${secrets_env_file} CLOUDBUILD_LOGS_BUCKET "gs://cloudbuild-logs-${cloudbuild_logs_bucket_suffix}"
+###done gsutil mb -p ${GCP_PROJECT_ID} ${CLOUDBUILD_LOGS_BUCKET}
+###done PROJECT_NUMBER=`gcloud projects list "--filter=${GCP_PROJECT_ID}" "--format=value(PROJECT_NUMBER)"`
+###done gsutil iam ch serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com:objectAdmin,objectCreator,objectViewer,legacyBucketWriter ${CLOUDBUILD_LOGS_BUCKET}
+###done 
+###done #TODO: determine whether mapwarper really uses this service account, and if not, get rid of it
+###done gcloud iam service-accounts create mapwarper-sa --display-name 'mapwarper access for storage and cloud sql'
+###done gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.admin
+###done gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.client
+###done gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.editor
+###done gcloud iam service-accounts keys create /tmp/mapwarper-service-account.json --iam-account mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+###done 
+###done set +x
+###done add_secret_from_file ${secrets_env_file} MAPWARPER_SA_KEY_JSON /tmp/mapwarper-service-account.json
+###done rm -f /tmp/mapwarper-service-account.json
+###done set -x
+###done 
+###done ###
+###done ### mapwarper storage buckets
+###done ###
+###done set +x
+###done BUCKET_SUFFIX=$(generate_bucket_suffix)
+###done add_secret ${secrets_env_file} MAPWARPER_WARPER_BUCKET "warper-${BUCKET_SUFFIX}"
+###done add_secret ${secrets_env_file} MAPWARPER_TILES_BUCKET "tiles-${BUCKET_SUFFIX}"
+###done set -x
+###done gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_WARPER_BUCKET}
+###done gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_TILES_BUCKET}
+###done 
+###done #  give service account "mapwarper-sa" access to those buckets
+###done gsutil iam ch serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_WARPER_BUCKET}
+###done gsutil iam ch serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_TILES_BUCKET}
+###done 
+###done # create tiles-backend-bucket
+###done gcloud compute backend-buckets create tiles-backend-bucket --enable-cdn --gcs-bucket-name=${MAPWARPER_TILES_BUCKET}
+###done 
+###done # set up url maps and public ip for tiles-backend-bucket
+###done gcloud compute url-maps create mapwarper-tiles-url-map --default-backend-bucket=tiles-backend-bucket
+###done gcloud compute url-maps add-path-matcher mapwarper-tiles-url-map --default-backend-bucket tiles-backend-bucket --path-matcher-name mapwarper-tiles-bucket-matcher '--backend-bucket-path-rules=/*=tiles-backend-bucket'
+###done gcloud compute target-http-proxies create http-tiles-lb-proxy --url-map mapwarper-tiles-url-map
+###done gcloud compute addresses create mapwarper-tiles-ip --global
+###done gcloud compute forwarding-rules create tiles-http-forwarding-rule --address=mapwarper-tiles-ip --global --target-http-proxy http-tiles-lb-proxy --ports=80
+###done 
+###done 
+###done ###
+###done ### mapwarper managed NAS file storage
+###done ###
+###done gcloud filestore instances create mapwarper-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=mapfileshare,capacity=1TB --network=name=default
+###done set +x
+###done add_secret ${secrets_env_file} MAPWARPER_NFS_SERVER "`gcloud filestore instances describe mapwarper-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])"`"
+###done set -x
+###done # create PersistentVolume (nfs mount) called mapwarper-fileserver
+###done ${script_dir}/kapply k8s/mapwarper-filestore-storage.yaml.in
+###done 
+###done 
+###done ###
+###done ### create services, load-balancer, and https ingress
+###done ###
+###done ${script_dir}/kcreate k8s/cgimap-service.yaml.in
+###done ${script_dir}/kcreate k8s/editor-service.yaml.in
+###done ${script_dir}/kcreate k8s/fe-service.yaml.in
+###done ${script_dir}/kcreate k8s/mapwarper-service.yaml.in
+###done ${script_dir}/kcreate k8s/oauth-proxy-service.yaml.in
+###done ${script_dir}/kcreate k8s/h3dmr-service.yaml.in
 
 set -x
 
-###
-### general gcp setup
-###
-gcloud config set project ${GCP_PROJECT_ID}
-gcloud config set compute/zone ${GCP_ZONE}
-gcloud services enable cloudbuild.googleapis.com container.googleapis.com containerregistry.googleapis.com file.googleapis.com redis.googleapis.com servicenetworking.googleapis.com sql-component.googleapis.com sqladmin.googleapis.com storage-api.googleapis.com storage-component.googleapis.com vision.googleapis.com
-gcloud container clusters create kartta-cluster1  --zone us-east4 --release-channel stable --enable-ip-alias --machine-type "n1-standard-4" --num-nodes=3
-gcloud compute addresses create google-managed-services-default --global --purpose=VPC_PEERING --prefix-length=20 --network=default
-gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --network=default --ranges=google-managed-services-default
-cloudbuild_logs_bucket_suffix=$(generate_bucket_suffix)
-add_secret ${secrets_env_file} CLOUDBUILD_LOGS_BUCKET "gs://cloudbuild-logs-${cloudbuild_logs_bucket_suffix}"
-gsutil mb -p ${GCP_PROJECT_ID} ${CLOUDBUILD_LOGS_BUCKET}
-PROJECT_NUMBER=`gcloud projects list "--filter=${GCP_PROJECT_ID}" "--format=value(PROJECT_NUMBER)"`
-gsutil iam ch serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com:objectAdmin,objectCreator,objectViewer,legacyBucketWriter ${CLOUDBUILD_LOGS_BUCKET}
-
-#TODO: determine whether mapwarper really uses this service account, and if not, get rid of it
-gcloud iam service-accounts create mapwarper-sa --display-name 'mapwarper access for storage and cloud sql'
-gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.admin
-gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.client
-gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.editor
-gcloud iam service-accounts keys create /tmp/mapwarper-service-account.json --iam-account mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com
-
-set +x
-add_secret_from_file ${secrets_env_file} MAPWARPER_SA_KEY_JSON /tmp/mapwarper-service-account.json
-rm -f /tmp/mapwarper-service-account.json
-set -x
-
-###
-### mapwarper storage buckets
-###
-set +x
-BUCKET_SUFFIX=$(generate_bucket_suffix)
-add_secret ${secrets_env_file} MAPWARPER_WARPER_BUCKET "warper-${BUCKET_SUFFIX}"
-add_secret ${secrets_env_file} MAPWARPER_TILES_BUCKET "tiles-${BUCKET_SUFFIX}"
-set -x
-gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_WARPER_BUCKET}
-gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_TILES_BUCKET}
-
-#  give service account "mapwarper-sa" access to those buckets
-gsutil iam ch serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_WARPER_BUCKET}
-gsutil iam ch serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_TILES_BUCKET}
-
-# create tiles-backend-bucket
-gcloud compute backend-buckets create tiles-backend-bucket --enable-cdn --gcs-bucket-name=${MAPWARPER_TILES_BUCKET}
-
-# set up url maps and public ip for tiles-backend-bucket
-gcloud compute url-maps create mapwarper-tiles-url-map --default-backend-bucket=tiles-backend-bucket
-gcloud compute url-maps add-path-matcher mapwarper-tiles-url-map --default-backend-bucket tiles-backend-bucket --path-matcher-name mapwarper-tiles-bucket-matcher '--backend-bucket-path-rules=/*=tiles-backend-bucket'
-gcloud compute target-http-proxies create http-tiles-lb-proxy --url-map mapwarper-tiles-url-map
-gcloud compute addresses create mapwarper-tiles-ip --global
-gcloud compute forwarding-rules create tiles-http-forwarding-rule --address=mapwarper-tiles-ip --global --target-http-proxy http-tiles-lb-proxy --ports=80
-
-
-###
-### mapwarper managed NAS file storage
-###
-gcloud filestore instances create mapwarper-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=mapfileshare,capacity=1TB --network=name=default
-set +x
-add_secret ${secrets_env_file} MAPWARPER_NFS_SERVER "`gcloud filestore instances describe mapwarper-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])"`"
-set -x
-# create PersistentVolume (nfs mount) called mapwarper-fileserver
-${script_dir}/kapply k8s/mapwarper-filestore-storage.yaml.in
-
-
-###
-### create services, load-balancer, and ingress
-###
-${script_dir}/kcreate k8s/cgimap-service.yaml.in
-${script_dir}/kcreate k8s/editor-service.yaml.in
-${script_dir}/kcreate k8s/fe-service.yaml.in
-${script_dir}/kcreate k8s/mapwarper-service.yaml.in
-${script_dir}/kcreate k8s/oauth-proxy-service.yaml.in
-${script_dir}/kcreate k8s/h3dmr-service.yaml.in
-
-${script_dir}/kcreate k8s/lb.yaml.in
-set +x
-wait_for_lb_ingress_ip "lb"
-add_secret ${secrets_env_file} LB_IP ${LB_IP}
-echo "got load balancer ip address: ${LB_IP}"
-set -x
-
-${script_dir}/kcreate k8s/kartta-ingress.yaml.in
-
+###done ${script_dir}/kcreate k8s/managed-certificate.yaml.in
+###done ${script_dir}/kcreate k8s/backend-config.yaml.in
+###done ${script_dir}/kcreate k8s/nodeport-service.yaml.in
+###done ${script_dir}/kcreate k8s/ingress.yaml.in
+###done set +x
+###done wait_for_ingress_ip "kartta-ingress"
+###done add_secret ${secrets_env_file} INGRESS_IP ${INGRESS_IP}
+###done echo "got INGRESS_IP=${INGRESS_IP}"
+###done set -x
 
 ###
 ### clone code repos
@@ -270,6 +273,8 @@ ${script_dir}/kcreate k8s/fe-deployment.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-deployment.yaml.in
 ${script_dir}/kcreate k8s/mapwarper-deployment.yaml.in
 
+
+
 set +x
 echo ""
 echo "########################################################################################"
@@ -281,15 +286,23 @@ echo "    kubectl get pods"
 echo "to see the list of running pods.  It might take a few minutes for all pods to"
 echo "become ready."
 echo ""
-echo "The site is running at public ip address ${LB_IP}."
-echo ""
 echo "You should now create a public DNS entry to assocaite the name ${SERVER_NAME}"
-echo "with the ip address ${LB_IP}."
+echo "with the ip address ${INGRESS_IP}."
 echo ""
-echo "Alternately, to just access the site from your computer, add the line"
-echo "    ${LB_IP}  ${SERVER_NAME}"
-echo "to your /etc/hosts file; that will make is so that you can use the site"
-echo "at http://${SERVER_NAME}, but does not make the name publicly available on the internet."
+echo "After creating the public DNS entry, run the command"
+echo "    kubectl describe managedcertificate"
+echo "every few minutes until the domain status says 'Active'. It might take 15-30"
+echo "minutes or so.  If the domain status says 'FailedNotVisible', it means the"
+echo "the DNS name isn't recognized yet.  If that happens, double-check that you"
+echo "correctly created the DNS entry, and wait a few more minutes and check again."
+echo "GKE will repeatedly try to provision the certificate every few minutes."
+echo ""
+echo "Once the certificate is provisioned, you can access the site at"
+echo "    https://${SERVER_NAME}"
+echo ""
+echo "It's normal to get 'Internal Error' or 'Bad Request' errors for the first few"
+echo "minutes after the certificate is provisioned.  If that happens, wait a few minutes"
+echo "and reload the page."
 echo ""
 
 ) 2>&1 | tee kbootstrap.log

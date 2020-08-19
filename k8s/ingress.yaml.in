@@ -16,12 +16,11 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: kartta-ingress
+  labels:
+    app: "fe"
+  annotations:
+    networking.gke.io/managed-certificates: kartta-certificate
 spec:
-  rules:
-  - host: ${SERVER_NAME}
-    http:
-      paths:
-      - path: /*
-        backend:
-          serviceName: lb
-          servicePort: ${LB_PORT}
+  backend:
+    serviceName: kartta-np
+    servicePort: 80
