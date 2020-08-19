@@ -111,7 +111,7 @@ ${script_dir}/kapply k8s/mapwarper-filestore-storage.yaml.in
 
 
 ###
-### create services, load-balancer, and https ingress
+### create services
 ###
 ${script_dir}/kcreate k8s/cgimap-service.yaml.in
 ${script_dir}/kcreate k8s/editor-service.yaml.in
@@ -119,16 +119,6 @@ ${script_dir}/kcreate k8s/fe-service.yaml.in
 ${script_dir}/kcreate k8s/mapwarper-service.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-service.yaml.in
 ${script_dir}/kcreate k8s/h3dmr-service.yaml.in
-
-${script_dir}/kcreate k8s/managed-certificate.yaml.in
-${script_dir}/kcreate k8s/backend-config.yaml.in
-${script_dir}/kcreate k8s/nodeport-service.yaml.in
-${script_dir}/kcreate k8s/ingress.yaml.in
-set +x
-wait_for_ingress_ip "kartta-ingress"
-add_secret ${secrets_env_file} INGRESS_IP ${INGRESS_IP}
-echo "got INGRESS_IP=${INGRESS_IP}"
-set -x
 
 ###
 ### clone code repos
@@ -263,7 +253,6 @@ set -x
 ###
 ### deploy applications
 ###
-
 ${script_dir}/resecret
 ${script_dir}/kcreate k8s/cgimap-deployment.yaml.in
 ${script_dir}/kcreate k8s/editor-deployment.yaml.in
@@ -271,6 +260,19 @@ ${script_dir}/kcreate k8s/fe-deployment.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-deployment.yaml.in
 ${script_dir}/kcreate k8s/mapwarper-deployment.yaml.in
 
+
+###
+### create ssl cert and https ingress
+###
+${script_dir}/kcreate k8s/managed-certificate.yaml.in
+${script_dir}/kcreate k8s/backend-config.yaml.in
+${script_dir}/kcreate k8s/nodeport-service.yaml.in
+${script_dir}/kcreate k8s/ingress.yaml.in
+set +x
+wait_for_ingress_ip "kartta-ingress"
+add_secret ${secrets_env_file} INGRESS_IP ${INGRESS_IP}
+echo "got INGRESS_IP=${INGRESS_IP}"
+set -x
 
 
 set +x
