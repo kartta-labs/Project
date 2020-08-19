@@ -9,7 +9,7 @@ RUN cd /src && wget https://dl.google.com/go/go1.14.4.src.tar.gz
 RUN cd /src && tar xf go1.14.4.src.tar.gz
 RUN rm /src/go1.14.4.src.tar.gz
 
-RUN cd /src/go/src && GOROOT_BOOTSTRAP=/usr/bin ./all.bash
+RUN cd /src/go/src && GOROOT_BOOTSTRAP=/usr/bin ./make.bash
 
 # RUN apt remove golang-go # (no longer needed)
 
