@@ -111,6 +111,19 @@ services:
     volumes:
       - ./iD:/iD
 
+  map:
+    build:
+      context: ./map
+      dockerfile: Dockerfile
+    entrypoint: ["/bin/bash", "/container/config/map/docker-launch.sh"]
+    volumes:
+      - ./container/tools:/container/tools
+      - ./container/secrets:/container/secrets
+      - ./container/config/map:/container/config/map
+      - ./map:/map
+    ports:
+      - "${MAP_PORT}"
+
 secrets:
   bucket-service-account:
     file:

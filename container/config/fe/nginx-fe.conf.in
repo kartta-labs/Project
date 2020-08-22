@@ -104,6 +104,24 @@ __ENDIF__
         error_log /var/log/nginx/h3dmr.api.error.log info;
     }
 
+
+    location = / {
+        return 302 ${D}scheme://${D}http_host${MAP_SITE_PREFIX}/;
+    }
+
+    location ${MAP_SITE_PREFIX} {
+        return 302 ${D}scheme://${D}http_host${MAP_SITE_PREFIX}/;
+    }      
+
+    location ${MAP_SITE_PREFIX}/ {
+        rewrite ${MAP_SITE_PREFIX}/(.*) /${D}1 break;
+        proxy_pass http://map:${MAP_PORT};
+        proxy_redirect off;
+        proxy_set_header Host ${D}host;
+        access_log /var/log/nginx/map.access.log combined;
+    }
+
+
 __IF${ID_DEV}THEN__
     location /id {
              return 302 ${D}scheme://${D}http_host/id/;
