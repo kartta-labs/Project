@@ -63,20 +63,20 @@ sudo ./dcwrapper build id
 sudo ./dcwrapper build fe
 
 
-if [ ! -d "./h3dmr" ]
+if [ ! -d "./reservoir" ]
 then
-    LOG_INFO "Cloning Reservoir (h3dmr) repository."
-    git clone ${H3DMR_REPO} h3dmr
+    LOG_INFO "Cloning Reservoir repository."
+    git clone ${RESERVOIR_REPO} h3dmr
 else
-    LOG_INFO "Pulling latest Reservoir (h3dmr) repository."
-    git -C ./h3dmr pull origin proxy
+    LOG_INFO "Pulling latest Reservoir repository."
+    git -C ./reservoir pull origin proxy
 fi
 
-# Hack to ensure all files in h3dmr sub-project are read/write-able by any user (including root).
+# Hack to ensure all files in Reservoir sub-project are read/write-able by any user (including root).
 ./fixperms
 
 LOG_INFO "Building Reservoir image."
-sudo ./dcwrapper -f ./h3dmr/docker-compose.yml build h3dmr
+sudo ./dcwrapper -f ./reservoir/docker-compose.yml build reservoir
 
 if [ "${MAP_REPO}" != "" ] ; then
   git clone ${MAP_REPO} map
