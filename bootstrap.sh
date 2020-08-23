@@ -66,10 +66,10 @@ sudo ./dcwrapper build fe
 if [ ! -d "./reservoir" ]
 then
     LOG_INFO "Cloning Reservoir repository."
-    git clone ${RESERVOIR_REPO} h3dmr
+    git clone ${RESERVOIR_REPO} reservoir
 else
     LOG_INFO "Pulling latest Reservoir repository."
-    git -C ./reservoir pull origin proxy
+    git -C ./reservoir pull origin master
 fi
 
 # Hack to ensure all files in Reservoir sub-project are read/write-able by any user (including root).
