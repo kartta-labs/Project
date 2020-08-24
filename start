@@ -27,13 +27,13 @@ fi
 
 case $arg in
   maps)
-    ./dcwrapper -f ./docker-compose.yml -f ./h3dmr/docker-compose.yml up --remove-orphans
+    ./dcwrapper -f ./docker-compose.yml -f ./reservoir/docker-compose.yml up --remove-orphans
     ;;
   reservoir)
-    ./dcwrapper -f ./docker-compose.empty.yml -f ./h3dmr/docker-compose.yml up --remove-orphans
+    ./dcwrapper -f ./docker-compose.empty.yml -f ./reservoir/docker-compose.yml up --remove-orphans
     ;;
   all)
-    ./dcwrapper -f ./docker-compose.yml -f ./h3dmr/docker-compose.yml up --remove-orphans
+    ./dcwrapper -f ./docker-compose.yml -f ./reservoir/docker-compose.yml up --remove-orphans
     ;;
   *)
     echo "unrecognized arg: $arg"
