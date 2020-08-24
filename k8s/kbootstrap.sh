@@ -126,6 +126,7 @@ ${script_dir}/kcreate k8s/h3dmr-service.yaml.in
 git clone ${EDITOR_REPO} editor-website
 git clone ${MAPWARPER_REPO} mapwarper
 git clone ${CGIMAP_REPO} openstreetmap-cgimap
+git clone ${RESERVOIR_REPO} reservoir
 
 
 ###
@@ -157,6 +158,11 @@ gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/cgimap:${CGIMA
 export MAPWARPER_SHORT_SHA=`(cd mapwarper ; git rev-parse --short HEAD)`
 gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/mapwarper" "--substitutions=SHORT_SHA=${MAPWARPER_SHORT_SHA}"  --config k8s/cloudbuild-mapwarper.yaml .
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/mapwarper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/mapwarper:latest"
+
+# Reservoir
+export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
+gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-mapwarper.yaml ./reservoir
+gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/reservoir:${RESERVOIR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/reservoir:latest"
 
 
 
