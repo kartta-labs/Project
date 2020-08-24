@@ -109,6 +109,15 @@ set -x
 # create PersistentVolume (nfs mount) called mapwarper-fileserver
 ${script_dir}/kapply k8s/mapwarper-filestore-storage.yaml.in
 
+###
+### Reservoir managed NAS file storage
+###
+gcloud filestore instances create reservoir-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=reservoirfileshare,capacity=1TB --network=name=default
+set +x
+add_secret ${secrets_env_file} RESERVOIR_NFS_SERVER "`gcloud filestore instances describe reservoir-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])"`"
+set -x
+# create PersistentVolume (nfs mount) called reservoir-fileserver
+${script_dir}/kapply k8s/reservoir-filestore-storage.yaml.in
 
 ###
 ### create services
@@ -118,7 +127,7 @@ ${script_dir}/kcreate k8s/editor-service.yaml.in
 ${script_dir}/kcreate k8s/fe-service.yaml.in
 ${script_dir}/kcreate k8s/mapwarper-service.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-service.yaml.in
-${script_dir}/kcreate k8s/h3dmr-service.yaml.in
+${script_dir}/kcreate k8s/h3dmr-service.yaml.in # TODO: Replace this with Reservoir config.
 
 ###
 ### clone code repos

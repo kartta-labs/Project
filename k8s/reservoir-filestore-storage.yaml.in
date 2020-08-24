@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: reservoir-fileserver
+spec:
+  capacity:
+    storage: 1T
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: /reservoirfs
+    server: ${RESERVOIR_NFS_SERVER}
+---  
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: reservoir-fileserver-claim
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1T
