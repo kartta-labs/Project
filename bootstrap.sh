@@ -33,6 +33,13 @@ LOG_INFO() {
     echo "[bootstrap.sh INFO $(date +"%Y-%m-%d %T %Z")] $1"
 }
 
+if [ "${MAP_REPO}" != "" ] ; then
+  git clone ${MAP_REPO} map
+  # map repo needs a copy of antqiue repo under it.  There are definitely better ways to do this
+  # (git submodule?), but for now we just clone it manually:
+  (cd map ; git clone ${ANTIQUE_REPO} antique)
+fi
+
 git clone ${EDITOR_REPO} editor-website
 mkdir editor-website/tmp editor-website/log
 ./fixperms
@@ -79,10 +86,6 @@ LOG_INFO "Building Reservoir image."
 sudo ./dcwrapper -f ./h3dmr/docker-compose.yml build h3dmr
 
 if [ "${MAP_REPO}" != "" ] ; then
-  git clone ${MAP_REPO} map
-  # map repo needs a copy of antqiue repo under it.  There are definitely better ways to do this
-  # (git submodule?), but for now we just clone it manually:
-  (cd map ; git clone ${ANTIQUE_REPO} antique)
   sudo ./dcwrapper build map
 fi
 
