@@ -48,12 +48,12 @@
 # themselves, with no leading or trailing whitespace or any other text.  The
 # value of NAME should never include newlines.
 
-source $1
+. $1
 shift
 
 export D=\$
 
-while [ "$#" -gt 0 ]
+while [ "$#" -gt "0" ]
 do
   envsubst < "$1" \
     | sed '/^__IFTHEN__$/,/^__ENDIF__$/d' \

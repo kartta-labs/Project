@@ -4,7 +4,7 @@ cp /container/config/fe/fastcgi_params /etc/nginx/fastcgi_params
 mkdir /etc/nginx/shared-conf
 cp /container/config/fe/oauth-proxy.conf /etc/nginx/shared-conf/oauth-proxy.conf
 
-/bin/bash /container/tools/subst \
+/bin/sh /container/tools/subst \
   /container/secrets/secrets.env \
   /container/config/fe/nginx-fe.conf.in /etc/nginx/sites-enabled/fe
 

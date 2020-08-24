@@ -79,7 +79,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-fe
-    entrypoint: ["/bin/bash", "/container/config/fe/launch"]
+    entrypoint: ["/bin/sh", "/container/config/fe/launch"]
     volumes:
       - ./container/tools:/container/tools
       - ./container/secrets:/container/secrets

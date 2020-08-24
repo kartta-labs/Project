@@ -4,7 +4,7 @@ FROM ubuntu:18.04
 
 RUN apt-get update -qq
 
-RUN apt-get install -y build-essential git  logrotate libmemcached-dev libcrypto++-dev build-essential git-core libbz2-dev vim emacs nginx-full iputils-ping gettext-base
+RUN apt-get install -y logrotate nginx-full iputils-ping gettext-base
 
 RUN mkdir -p /srv
 RUN mkdir -p /srv/public

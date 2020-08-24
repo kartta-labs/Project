@@ -28,7 +28,7 @@ spec:
       containers:
         - image: gcr.io/${GCP_PROJECT_ID}/fe:latest
           name: fe
-          command: ["bash"]
+          command: ["/bin/sh"]
           args: ["/container/config/fe/launch"]
           ports:
             - containerPort: ${FE_PORT}
