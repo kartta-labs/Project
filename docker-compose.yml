@@ -91,11 +91,11 @@ services:
       - editor
       - cgimap
       - mapwarper
-      - h3dmr
+      - reservoir
 
-  # Dummy version of h3dmr to create h3dmr service in docker network, to prevent
-  # fe nginx fatal error "upstream h3dmr not found".
-  h3dmr:
+  # Dummy version of Reservoir to create reservoir service in docker network, to prevent
+  # fe nginx fatal error "upstream reservoir not found".
+  reservoir:
     build:
       context: .
       dockerfile: Dockerfile-fe
@@ -110,6 +110,19 @@ services:
     entrypoint: ["/bin/bash", "/iD/launch"]
     volumes:
       - ./iD:/iD
+
+  map:
+    build:
+      context: ./map
+      dockerfile: Dockerfile
+    entrypoint: ["/bin/bash", "/container/config/map/docker-launch.sh"]
+    volumes:
+      - ./container/tools:/container/tools
+      - ./container/secrets:/container/secrets
+      - ./container/config/map:/container/config/map
+      - ./map:/map
+    ports:
+      - "${MAP_PORT}"
 
 secrets:
   bucket-service-account:

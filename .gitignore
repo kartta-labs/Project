@@ -1,4 +1,5 @@
 /editor-website
+/map
 /iD
 /mapwarper
 /openstreetmap-cgimap
@@ -6,6 +7,7 @@
 /.docker-compose.yml
 /tmp
 /h3dmr
+/reservoir
 /tegola
 /antique
 /bootstrap.log
