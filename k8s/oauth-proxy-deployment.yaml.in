@@ -30,7 +30,7 @@ spec:
           name: oauth-proxy
           #command: ["tail"]
           #args: ["-f", "/dev/null"]
-          command: ["bash"]
+          command: ["/bin/sh"]
           args: ["/container/config/oauth-proxy/launch"]
           ports:
             - containerPort: ${OAUTH_PROXY_PORT}

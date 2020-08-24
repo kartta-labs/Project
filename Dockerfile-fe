@@ -4,8 +4,6 @@ FROM ubuntu:18.04
 
 RUN apt-get update -qq
 
-#RUN apt-get install -y build-essential git  logrotate libxml2-dev libpqxx-dev libfcgi-dev libboost-dev libboost-regex-dev libboost-program-options-dev libboost-date-time-dev libboost-filesystem-dev libboost-system-dev libboost-locale-dev libmemcached-dev libcrypto++-dev ruby2.5 libruby2.5 ruby2.5-dev libmagickwand-dev libxml2-dev libxslt1-dev nodejs build-essential git-core phantomjs postgresql-client libsasl2-dev imagemagick libffi-dev libgd-dev libarchive-dev libbz2-dev vim emacs nginx-full libnginx-mod-http-passenger
-
 RUN apt-get install -y build-essential git  logrotate libmemcached-dev libcrypto++-dev build-essential git-core libbz2-dev vim emacs nginx-full iputils-ping gettext-base
 
 RUN mkdir -p /srv

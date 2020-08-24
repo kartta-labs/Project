@@ -11,7 +11,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-oauth-proxy
-    entrypoint: ["/bin/bash", "/container/config/oauth-proxy/launch"]
+    entrypoint: ["/bin/sh", "/container/config/oauth-proxy/launch"]
     volumes:
       - ./container/tools:/container/tools
       - ./container/secrets:/container/secrets
