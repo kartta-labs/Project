@@ -16,7 +16,7 @@
 
 # usage:
 #   ./start maps   - starts up all maps apps
-#   ./start h3dmr  - starts up the h3dmr app
+#   ./start reservoir  - starts up the Reservoir app
 #   ./start all    - starts up all apps      (as of 8/11/20, this is same as 'maps')
 
 arg=$1
@@ -29,7 +29,7 @@ case $arg in
   maps)
     ./dcwrapper -f ./docker-compose.yml -f ./h3dmr/docker-compose.yml up --remove-orphans
     ;;
-  h3dmr)
+  reservoir)
     ./dcwrapper -f ./docker-compose.empty.yml -f ./h3dmr/docker-compose.yml up --remove-orphans
     ;;
   all)

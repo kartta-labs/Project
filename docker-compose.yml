@@ -91,11 +91,11 @@ services:
       - editor
       - cgimap
       - mapwarper
-      - h3dmr
+      - reservoir
 
-  # Dummy version of h3dmr to create h3dmr service in docker network, to prevent
-  # fe nginx fatal error "upstream h3dmr not found".
-  h3dmr:
+  # Dummy version of Reservoir to create reservoir service in docker network, to prevent
+  # fe nginx fatal error "upstream reservoir not found".
+  reservoir:
     build:
       context: .
       dockerfile: Dockerfile-fe

@@ -7,6 +7,7 @@
 /.docker-compose.yml
 /tmp
 /h3dmr
+/reservoir
 /tegola
 /antique
 /bootstrap.log
