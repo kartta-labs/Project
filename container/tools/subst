@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 #
 # Copyright 2020 Google LLC
 #
@@ -53,7 +53,8 @@ shift
 
 export D=\$
 
-while (( "$#" )); do
+while [ "$#" -gt 0 ]
+do
   envsubst < "$1" \
     | sed '/^__IFTHEN__$/,/^__ENDIF__$/d' \
     | sed '/^__IF.*THEN__$/d' \
