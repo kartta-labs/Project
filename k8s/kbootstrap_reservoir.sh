@@ -1,3 +1,5 @@
+#! /bin/bash
+#
 # Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,29 +13,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: reservoir-fileserver
-spec:
-  capacity:
-    storage: 1T
-  accessModes:
-  - ReadWriteMany
-  nfs:
-    path: /reservoirfs
-    server: ${RESERVOIR_NFS_SERVER}
-    
----
+#
+# Assumes gcloud is already propery configured.
 
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: reservoir-fileserver-claim
-spec:
-  accessModes:
-  - ReadWriteMany
-  storageClassName: ""
-  resources:
-    requests:
-      storage: 1T
+###
+### Reservoir managed NAS file storage
+###
+
+# Set 'script_dir' to the full path of the directory containing this script
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+. ${script_dir}/reservoir_functions.sh
+
+
+LOG_INFO "script_dir: ${script_dir}"
+
+# Generate Reservoir Images via Cloud Build
+
+reservoir_cloud_build
+
+
+
+
+
+
