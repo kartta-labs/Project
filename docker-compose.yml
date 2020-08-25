@@ -48,31 +48,31 @@ services:
     depends_on:
       - editor-db
 
-  mapwarper-db:
+  warper-db:
     image: mdillon/postgis
     volumes:
-      - ./tmp/mapwarper-db:/var/lib/postgresql/data
+      - ./tmp/warper-db:/var/lib/postgresql/data
 
   redis:
     image: redis
 
-  mapwarper:
+  warper:
     build:
       context: .
-      dockerfile: Dockerfile-mapwarper
+      dockerfile: Dockerfile-warper
     secrets:                    
      - bucket-service-account
-    entrypoint: ["/bin/bash", "/container/config/mapwarper/launch"]
+    entrypoint: ["/bin/bash", "/container/config/warper/launch"]
     volumes:
       - ./container/tools:/container/tools
       - ./container/secrets:/container/secrets
-      - ./container/config/mapwarper:/container/config/mapwarper
-      - ./mapwarper:/app
+      - ./container/config/warper:/container/config/warper
+      - ./warper:/app
     ports:
       - "${MAPWARPER_PORT}"
       - "${MAPWARPER_INTERNAL_PORT}"
     depends_on:
-      - mapwarper-db
+      - warper-db
       - redis
 
   fe:
@@ -90,7 +90,7 @@ services:
       - oauth-proxy
       - editor
       - cgimap
-      - mapwarper
+      - warper
       - reservoir
 
   # Dummy version of Reservoir to create reservoir service in docker network, to prevent
@@ -127,4 +127,4 @@ services:
 secrets:
   bucket-service-account:
     file:
-      ./container/secrets/mapwarper-service-account.json
+      ./container/secrets/warper-service-account.json

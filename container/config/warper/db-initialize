@@ -1,6 +1,6 @@
 #! /bin/bash
 
-/bin/bash /container/config/mapwarper/create-configs
+/bin/bash /container/config/warper/create-configs
 
 . /container/secrets/secrets.env
 

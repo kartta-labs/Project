@@ -20,7 +20,7 @@ defaults: &defaults
   geoparse_region: ""
   geoparse_enable: false
   host: "localhost:3000"
-  site_name: "mapwarper"
+  site_name: "warper"
   host_with_scheme: "http://localhost:3000"
   full_site_name: "MapWarper.net"
   reply_to: "example@example.com"

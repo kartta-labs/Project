@@ -1,0 +1,6 @@
+set -x
+
+#  create subdirs of nfs mounted warper-fileserver volume
+mkdir -p /mnt/warper/maps/dst
+mkdir -p /mnt/warper/maps/src
+mkdir -p /mnt/warper/maps/tileindex

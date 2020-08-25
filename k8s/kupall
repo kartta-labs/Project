@@ -19,4 +19,4 @@
 ./k8s/kcreate k8s/editor-deployment.yaml.in
 ./k8s/kcreate k8s/fe-deployment.yaml.in
 ./k8s/kcreate k8s/oauth-proxy-deployment.yaml.in
-./k8s/kcreate k8s/mapwarper-deployment.yaml.in
+./k8s/kcreate k8s/warper-deployment.yaml.in

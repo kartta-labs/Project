@@ -1,7 +1,7 @@
 /editor-website
 /map
 /iD
-/mapwarper
+/warper
 /openstreetmap-cgimap
 /container/secrets/secrets.env
 /.docker-compose.yml

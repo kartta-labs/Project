@@ -38,7 +38,7 @@ fi
 
 . ${secrets_env_file}
 
-# set mapwarper rails env to "production" in secrets file
+# set warper rails env to "production" in secrets file
 add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
 add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
 add_secret ${secrets_env_file} ID_DEV ""
@@ -61,20 +61,20 @@ gsutil mb -p ${GCP_PROJECT_ID} ${CLOUDBUILD_LOGS_BUCKET}
 PROJECT_NUMBER=`gcloud projects list "--filter=${GCP_PROJECT_ID}" "--format=value(PROJECT_NUMBER)"`
 gsutil iam ch serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com:objectAdmin,objectCreator,objectViewer,legacyBucketWriter ${CLOUDBUILD_LOGS_BUCKET}
 
-#TODO: determine whether mapwarper really uses this service account, and if not, get rid of it
-gcloud iam service-accounts create mapwarper-sa --display-name 'mapwarper access for storage and cloud sql'
-gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.admin
-gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.client
-gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.editor
-gcloud iam service-accounts keys create /tmp/mapwarper-service-account.json --iam-account mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+#TODO: determine whether warper really uses this service account, and if not, get rid of it
+gcloud iam service-accounts create warper-sa --display-name 'warper access for storage and cloud sql'
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.admin
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.client
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.editor
+gcloud iam service-accounts keys create /tmp/warper-service-account.json --iam-account warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com
 
 set +x
-add_secret_from_file ${secrets_env_file} MAPWARPER_SA_KEY_JSON /tmp/mapwarper-service-account.json
-rm -f /tmp/mapwarper-service-account.json
+add_secret_from_file ${secrets_env_file} MAPWARPER_SA_KEY_JSON /tmp/warper-service-account.json
+rm -f /tmp/warper-service-account.json
 set -x
 
 ###
-### mapwarper storage buckets
+### warper storage buckets
 ###
 set +x
 BUCKET_SUFFIX=$(generate_bucket_suffix)
@@ -84,30 +84,30 @@ set -x
 gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_WARPER_BUCKET}
 gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_TILES_BUCKET}
 
-#  give service account "mapwarper-sa" access to those buckets
-gsutil iam ch serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_WARPER_BUCKET}
-gsutil iam ch serviceAccount:mapwarper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_TILES_BUCKET}
+#  give service account "warper-sa" access to those buckets
+gsutil iam ch serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_WARPER_BUCKET}
+gsutil iam ch serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_TILES_BUCKET}
 
 # create tiles-backend-bucket
 gcloud compute backend-buckets create tiles-backend-bucket --enable-cdn --gcs-bucket-name=${MAPWARPER_TILES_BUCKET}
 
 # set up url maps and public ip for tiles-backend-bucket
-gcloud compute url-maps create mapwarper-tiles-url-map --default-backend-bucket=tiles-backend-bucket
-gcloud compute url-maps add-path-matcher mapwarper-tiles-url-map --default-backend-bucket tiles-backend-bucket --path-matcher-name mapwarper-tiles-bucket-matcher '--backend-bucket-path-rules=/*=tiles-backend-bucket'
-gcloud compute target-http-proxies create http-tiles-lb-proxy --url-map mapwarper-tiles-url-map
-gcloud compute addresses create mapwarper-tiles-ip --global
-gcloud compute forwarding-rules create tiles-http-forwarding-rule --address=mapwarper-tiles-ip --global --target-http-proxy http-tiles-lb-proxy --ports=80
+gcloud compute url-maps create warper-tiles-url-map --default-backend-bucket=tiles-backend-bucket
+gcloud compute url-maps add-path-matcher warper-tiles-url-map --default-backend-bucket tiles-backend-bucket --path-matcher-name warper-tiles-bucket-matcher '--backend-bucket-path-rules=/*=tiles-backend-bucket'
+gcloud compute target-http-proxies create http-tiles-lb-proxy --url-map warper-tiles-url-map
+gcloud compute addresses create warper-tiles-ip --global
+gcloud compute forwarding-rules create tiles-http-forwarding-rule --address=warper-tiles-ip --global --target-http-proxy http-tiles-lb-proxy --ports=80
 
 
 ###
-### mapwarper managed NAS file storage
+### warper managed NAS file storage
 ###
-gcloud filestore instances create mapwarper-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=mapfileshare,capacity=1TB --network=name=default
+gcloud filestore instances create warper-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=mapfileshare,capacity=1TB --network=name=default
 set +x
-add_secret ${secrets_env_file} MAPWARPER_NFS_SERVER "`gcloud filestore instances describe mapwarper-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])"`"
+add_secret ${secrets_env_file} MAPWARPER_NFS_SERVER "`gcloud filestore instances describe warper-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])"`"
 set -x
-# create PersistentVolume (nfs mount) called mapwarper-fileserver
-${script_dir}/kapply k8s/mapwarper-filestore-storage.yaml.in
+# create PersistentVolume (nfs mount) called warper-fileserver
+${script_dir}/kapply k8s/warper-filestore-storage.yaml.in
 
 ###
 ### Reservoir managed NAS file storage
@@ -125,7 +125,7 @@ ${script_dir}/kapply k8s/reservoir-filestore-storage.yaml.in
 ${script_dir}/kcreate k8s/cgimap-service.yaml.in
 ${script_dir}/kcreate k8s/editor-service.yaml.in
 ${script_dir}/kcreate k8s/fe-service.yaml.in
-${script_dir}/kcreate k8s/mapwarper-service.yaml.in
+${script_dir}/kcreate k8s/warper-service.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-service.yaml.in
 ${script_dir}/kcreate k8s/h3dmr-service.yaml.in # TODO: Replace this with Reservoir config.
 
@@ -133,7 +133,7 @@ ${script_dir}/kcreate k8s/h3dmr-service.yaml.in # TODO: Replace this with Reserv
 ### clone code repos
 ###
 git clone ${EDITOR_REPO} editor-website
-git clone ${MAPWARPER_REPO} mapwarper
+git clone ${MAPWARPER_REPO} warper
 git clone ${CGIMAP_REPO} openstreetmap-cgimap
 git clone ${RESERVOIR_REPO} reservoir
 
@@ -163,14 +163,14 @@ export CGIMAP_SHORT_SHA=`(cd openstreetmap-cgimap ; git rev-parse --short HEAD)`
 gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/cgimap" "--substitutions=SHORT_SHA=${CGIMAP_SHORT_SHA}"  --config k8s/cloudbuild-cgimap.yaml .
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/cgimap:${CGIMAP_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/cgimap:latest"
 
-# mapwarper
-export MAPWARPER_SHORT_SHA=`(cd mapwarper ; git rev-parse --short HEAD)`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/mapwarper" "--substitutions=SHORT_SHA=${MAPWARPER_SHORT_SHA}"  --config k8s/cloudbuild-mapwarper.yaml .
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/mapwarper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/mapwarper:latest"
+# warper
+export MAPWARPER_SHORT_SHA=`(cd warper ; git rev-parse --short HEAD)`
+gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/warper" "--substitutions=SHORT_SHA=${MAPWARPER_SHORT_SHA}"  --config k8s/cloudbuild-warper.yaml .
+gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/warper:latest"
 
 # Reservoir
 export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-mapwarper.yaml ./reservoir
+gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-warper.yaml ./reservoir
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/reservoir:${RESERVOIR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/reservoir:latest"
 
 
@@ -214,55 +214,55 @@ set -x
 
 
 ###
-### mapwarper database
+### warper database
 ###
 
 #  create sql instance, store ip, generate and store password
-gcloud beta sql instances create mapwarper-sql --cpu=1 --memory=3840MiB --database-version=POSTGRES_9_6 --zone=${GCP_ZONE} --storage-type=SSD --network=default --no-assign-ip
+gcloud beta sql instances create warper-sql --cpu=1 --memory=3840MiB --database-version=POSTGRES_9_6 --zone=${GCP_ZONE} --storage-type=SSD --network=default --no-assign-ip
 set +x
 echo "generating passwords and storing secrets..."
-add_secret ${secrets_env_file} MAPWARPER_DB_HOST `gcloud beta sql instances describe mapwarper-sql --format="value(ipAddresses.ipAddress)"`
+add_secret ${secrets_env_file} MAPWARPER_DB_HOST `gcloud beta sql instances describe warper-sql --format="value(ipAddresses.ipAddress)"`
 add_secret ${secrets_env_file} MAPWARPER_POSTGRES_PASSWORD $(generate_password)
 set -x
 
 # set the generated password
-gcloud sql users set-password postgres --instance=mapwarper-sql "--password=${MAPWARPER_POSTGRES_PASSWORD}"
+gcloud sql users set-password postgres --instance=warper-sql "--password=${MAPWARPER_POSTGRES_PASSWORD}"
 
-# create mapwarper_production database
-gcloud sql databases create mapwarper_production --instance=mapwarper-sql
+# create warper_production database
+gcloud sql databases create warper_production --instance=warper-sql
 
 
-# perform database migration; note this uses the gcr.io mapwarper image built above to run a job
+# perform database migration; note this uses the gcr.io warper image built above to run a job
 ${script_dir}/resecret
-${script_dir}/kcreate k8s/mapwarper-db-migration-job.yaml.in
+${script_dir}/kcreate k8s/warper-db-migration-job.yaml.in
 set +x
-wait_for_k8s_job mapwarper-db-migration
+wait_for_k8s_job warper-db-migration
 set -x
 # Don't delete this job for now, to make it possible to view its logs.
-#kubectl delete job mapwarper-db-migration
+#kubectl delete job warper-db-migration
 
  
 
 ###
-### mapwarper redis instance
+### warper redis instance
 ###
-gcloud beta redis instances create mapwarper-redis --size=2 --region=${GCP_REGION} --zone=${GCP_ZONE} --redis-version=redis_4_0 --redis-config maxmemory-policy=allkeys-lru
+gcloud beta redis instances create warper-redis --size=2 --region=${GCP_REGION} --zone=${GCP_ZONE} --redis-version=redis_4_0 --redis-config maxmemory-policy=allkeys-lru
 set +x
-add_secret ${secrets_env_file} MAPWARPER_REDIS_HOST "`gcloud redis instances describe mapwarper-redis --region=${GCP_REGION} --format="value(host)"`"
+add_secret ${secrets_env_file} MAPWARPER_REDIS_HOST "`gcloud redis instances describe warper-redis --region=${GCP_REGION} --format="value(host)"`"
 add_secret ${secrets_env_file} MAPWARPER_REDIS_URL "redis://${MAPWARPER_REDIS_HOST}:6379/0/cache"
 set -x
 
 
 ###
-### mapwarper file storage initialization
+### warper file storage initialization
 ###
 ${script_dir}/resecret
-${script_dir}/kcreate k8s/mapwarper-fs-initialization-job.yaml.in
+${script_dir}/kcreate k8s/warper-fs-initialization-job.yaml.in
 set +x
-wait_for_k8s_job mapwarper-fs-initialization
+wait_for_k8s_job warper-fs-initialization
 set -x
 # Don't delete this job for now, to make it possible to view its logs.
-#kubectl delete job mapwarper-fs-initialization
+#kubectl delete job warper-fs-initialization
 
 
 ###
@@ -273,7 +273,7 @@ ${script_dir}/kcreate k8s/cgimap-deployment.yaml.in
 ${script_dir}/kcreate k8s/editor-deployment.yaml.in
 ${script_dir}/kcreate k8s/fe-deployment.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-deployment.yaml.in
-${script_dir}/kcreate k8s/mapwarper-deployment.yaml.in
+${script_dir}/kcreate k8s/warper-deployment.yaml.in
 
 
 ###

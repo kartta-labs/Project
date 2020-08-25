@@ -1,0 +1,9 @@
+/bin/sh /container/config/warper/create-configs
+
+nginx
+
+cd /app
+
+rm -f tmp/pids/server.pid
+
+exec /bin/sh /warper-rails-start.sh

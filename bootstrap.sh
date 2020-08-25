@@ -47,18 +47,18 @@ sudo ./dcwrapper up editor-db &
 sleep 60 # wait a min to give editor-db time to spin up
 sudo ./dcwrapper build oauth-proxy
 sudo ./dcwrapper build editor
-sudo ./dcwrapper run --entrypoint 'bash /container/config/editor/db-initialize' editor
+sudo ./dcwrapper run --entrypoint '/bin/sh /container/config/editor/db-initialize' editor
 sudo ./dcwrapper down
 
 
-git clone ${MAPWARPER_REPO} mapwarper
-mkdir mapwarper/tmp
-(cd mapwarper ; bash ./lib/cloudbuild/copy_configs.sh)
+git clone ${MAPWARPER_REPO} warper
+mkdir warper/tmp
+(cd warper ; bash ./lib/cloudbuild/copy_configs.sh)
 ./fixperms
-sudo ./dcwrapper up mapwarper-db &
-sleep 60 # wait a min to give mapwarper-db time to spin up
-sudo ./dcwrapper build mapwarper
-sudo ./dcwrapper run --entrypoint 'bash /container/config/mapwarper/db-initialize' mapwarper
+sudo ./dcwrapper up warper-db &
+sleep 60 # wait a min to give warper-db time to spin up
+sudo ./dcwrapper build warper
+sudo ./dcwrapper run --entrypoint '/bin/sh /container/config/warper/db-initialize' warper
 sudo ./dcwrapper down
 
 git clone ${CGIMAP_REPO} openstreetmap-cgimap

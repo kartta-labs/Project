@@ -15,9 +15,9 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: mapwarper
+  name: warper
   labels:
-    app: mapwarper
+    app: warper
 spec:
   replicas: 1
   #strategy: 
@@ -26,15 +26,15 @@ spec:
   template:
     metadata:
       labels:
-        app: mapwarper
+        app: warper
     spec:
       # This section describes the containers that make up the deployment
       containers:
-        - name: mapwarper
-          image: gcr.io/${GCP_PROJECT_ID}/mapwarper:latest
+        - name: warper
+          image: gcr.io/${GCP_PROJECT_ID}/warper:latest
           #imagePullPolicy: Always
           command: ["bash"]
-          args: ["/container/config/mapwarper/launch"]
+          args: ["/container/config/warper/launch"]
           ports:
             - containerPort: ${MAPWARPER_PORT}
           #resources:
@@ -61,32 +61,32 @@ spec:
           #  periodSeconds: 20
           #  timeoutSeconds: 5
           volumeMounts:
-            - name: mapwarper-filestore-volume
-              mountPath: /mnt/mapwarper/maps
+            - name: warper-filestore-volume
+              mountPath: /mnt/warper/maps
               subPath: maps
-            - name: mapwarper-filestore-volume
+            - name: warper-filestore-volume
               mountPath: /app/public/shared
               subPath: shared
             - name: container-tools
               mountPath: /container/tools
               readOnly: true
-            - name: container-config-mapwarper
-              mountPath: container/config/mapwarper
+            - name: container-config-warper
+              mountPath: container/config/warper
               readOnly: true
             - name: container-secrets
               mountPath: /container/secrets
               readOnly: true
       volumes:
-        - name: mapwarper-filestore-volume
+        - name: warper-filestore-volume
           persistentVolumeClaim:
-            claimName: mapwarper-fileserver-claim
+            claimName: warper-fileserver-claim
             readOnly: false
         - name: container-tools
           configMap:
             name: container-tools
-        - name: container-config-mapwarper
+        - name: container-config-warper
           configMap:
-            name: container-config-mapwarper
+            name: container-config-warper
         - name: container-secrets
           secret:
             secretName: container-secrets

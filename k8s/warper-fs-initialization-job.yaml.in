@@ -15,46 +15,46 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: mapwarper-fs-initialization
+  name: warper-fs-initialization
 spec:
   template:
     metadata:
       labels:
-        app: mapwarper-fs-initialization
+        app: warper-fs-initialization
     spec:
       restartPolicy: Never
       containers:
-        - image: gcr.io/${GCP_PROJECT_ID}/mapwarper:latest
-          name: mapwarper
-          command: ["bash"]
-          args: ["/container/config/mapwarper/fs-initialize-k8s"]
+        - image: gcr.io/${GCP_PROJECT_ID}/warper:latest
+          name: warper
+          command: ["/bin/sh"]
+          args: ["/container/config/warper/fs-initialize-k8s"]
           volumeMounts:
-            - name: mapwarper-filestore-volume
-              mountPath: /mnt/mapwarper/maps
+            - name: warper-filestore-volume
+              mountPath: /mnt/warper/maps
               subPath: maps
-            - name: mapwarper-filestore-volume
+            - name: warper-filestore-volume
               mountPath: /app/public/shared
               subPath: shared
             - name: container-tools
               mountPath: /container/tools
               readOnly: true
-            - name: container-config-mapwarper
-              mountPath: container/config/mapwarper
+            - name: container-config-warper
+              mountPath: container/config/warper
               readOnly: true
             - name: container-secrets
               mountPath: /container/secrets
               readOnly: true
       volumes:
-        - name: mapwarper-filestore-volume
+        - name: warper-filestore-volume
           persistentVolumeClaim:
-            claimName: mapwarper-fileserver-claim
+            claimName: warper-fileserver-claim
             readOnly: false
         - name: container-tools
           configMap:
             name: container-tools
-        - name: container-config-mapwarper
+        - name: container-config-warper
           configMap:
-            name: container-config-mapwarper
+            name: container-config-warper
         - name: container-secrets
           secret:
             secretName: container-secrets

@@ -27,7 +27,7 @@ server {
 
     # rails wants to handle this mess
     # location ~ ^/w/assets/(.*)${D} {
-    #        root /home/rkiveris/src/mapwarper-dev/mapwarper;
+    #        root /home/rkiveris/src/warper-dev/warper;
     #         try_files /public/assets/${D}1 /app/assets/${D}1 /vendor/assets/${D}1 =404;
     # }
     location ${MAPWARPER_SITE_PREFIX}/uploads/ {

@@ -19,5 +19,5 @@
 kubectl delete job editor-empty-and-reinitialize-db --ignore-not-found 
 ./k8s/kcreate ./k8s/editor-empty-and-reinitialize-db-job.yaml.in
 
-kubectl delete job mapwarper-empty-and-reinitialize-db --ignore-not-found 
-./k8s/kcreate ./k8s/mapwarper-empty-and-reinitialize-db-job.yaml.in
+kubectl delete job warper-empty-and-reinitialize-db --ignore-not-found 
+./k8s/kcreate ./k8s/warper-empty-and-reinitialize-db-job.yaml.in

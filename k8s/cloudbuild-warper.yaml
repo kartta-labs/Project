@@ -12,29 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mapwarper-fileserver
-spec:
-  capacity:
-    storage: 1T
-  accessModes:
-  - ReadWriteMany
-  nfs:
-    path: /mapfileshare
-    server: ${MAPWARPER_NFS_SERVER}
-
----
-
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mapwarper-fileserver-claim
-spec:
-  accessModes:
-  - ReadWriteMany
-  storageClassName: ""
-  resources:
-    requests:
-      storage: 1T
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/warper:$SHORT_SHA', '-f', 'Dockerfile-warper', '.']
+images:
+- 'gcr.io/$PROJECT_ID/warper:$SHORT_SHA'
+timeout: 3600s

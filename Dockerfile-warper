@@ -1,4 +1,4 @@
-# docker build -t mapwarper:latest -f Dockerfile-mapwarper .
+# docker build -t warper:latest -f Dockerfile-warper .
 
 FROM ubuntu:18.04
 
@@ -12,18 +12,19 @@ RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 RUN apt-get update -qq && apt-get install -y gcsfuse
 
 #for 18.04 we need to loosen up the imagemagick policy limits
-COPY ./mapwarper/config/imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
+COPY ./warper/config/imagemagick-policy.xml /etc/ImageMagick-6/policy.xml
 
 #copy log rotate 
-COPY ./mapwarper/config/mapwarper.logrotate /etc/logrotate.d/mapwarper
-RUN chmod 0644 /etc/logrotate.d/mapwarper
+COPY ./warper/config/mapwarper.logrotate /etc/logrotate.d/warper
+RUN chmod 0644 /etc/logrotate.d/warper
 
 RUN mkdir -p /app
 
 WORKDIR /app
 
-COPY ./mapwarper/Gemfile  Gemfile
-COPY ./mapwarper/Gemfile.lock Gemfile.lock
+COPY ./warper/Gemfile  Gemfile
+COPY ./warper/Gemfile.lock Gemfile.lock
+RUN echo "gem: --no-document" >> ~/.gemrc
 
 RUN gem install bundler -v=1.17.3 
 
@@ -32,7 +33,7 @@ RUN gem update --system
 RUN bundle update --bundler
 RUN bundle install
 
-COPY ./mapwarper .
+COPY ./warper .
 
 RUN bash ./lib/cloudbuild/copy_configs.sh
 

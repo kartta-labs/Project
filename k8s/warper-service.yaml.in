@@ -15,7 +15,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mapwarper
+  name: warper
 spec:
   ports:
   - name: application
@@ -25,4 +25,4 @@ spec:
     port: ${MAPWARPER_INTERNAL_PORT}
     targetPort: ${MAPWARPER_INTERNAL_PORT}
   selector:
-    app: mapwarper
+    app: warper

@@ -15,25 +15,25 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: mapwarper-db-migration
+  name: warper-empty-and-reinitialize-db
 spec:
   template:
     metadata:
       labels:
-        app: mapwarper-db-migration
+        app: warper-empty-and-reinitialize-db
     spec:
       restartPolicy: Never
       containers:
-        - image: gcr.io/${GCP_PROJECT_ID}/mapwarper:latest
-          name: mapwarper
-          command: ["bash"]
-          args: ["/container/config/mapwarper/db-initialize-k8s"]
+        - image: gcr.io/${GCP_PROJECT_ID}/warper:latest
+          name: warper
+          command: ["/bin/sh"]
+          args: ["/container/config/warper/empty-and-reinitialize-db-k8s"]
           volumeMounts:
           - name: container-tools
             mountPath: /container/tools
             readOnly: true
-          - name: container-config-mapwarper
-            mountPath: container/config/mapwarper
+          - name: container-config-warper
+            mountPath: container/config/warper
             readOnly: true
           - name: container-secrets
             mountPath: /container/secrets
@@ -42,9 +42,9 @@ spec:
       - name: container-tools
         configMap:
           name: container-tools
-      - name: container-config-mapwarper
+      - name: container-config-warper
         configMap:
-          name: container-config-mapwarper
+          name: container-config-warper
       - name: container-secrets
         secret:
           secretName: container-secrets

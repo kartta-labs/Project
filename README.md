@@ -69,7 +69,7 @@ Leave this command running in one terminal; use a separate terminal for everythi
 when you are done, or so you can restart everything, hit Ctrl-C.
 
 Once all the containers have started (usually 1 or 2 minutes), visit http://localhost/e/ in your browser
-for editor, or http://localhost/w/ for mapwarper.
+for editor, or http://localhost/w/ for warper.
 
 ### Things to note
 
@@ -94,10 +94,10 @@ for editor, or http://localhost/w/ for mapwarper.
    CONTAINER ID   IMAGE                  COMMAND                  PORTS                                            NAMES
    cd904223a9d1   project_fe             "nginx -g 'daemon of…"   0.0.0.0:80->80/tcp                               project_fe_1
    3539235734cd   project_editor         "/editor-container-s…"   0.0.0.0:32936->80/tcp                            project_editor_1
-   34d109561bca   project_mapwarper      "/mapwarper-containe…"   0.0.0.0:32938->80/tcp, 0.0.0.0:32937->3000/tcp   project_mapwarper_1
+   34d109561bca   project_warper      "/warper-containe…"   0.0.0.0:32938->80/tcp, 0.0.0.0:32937->3000/tcp   project_warper_1
    c2916d2bb811   project_cgimap         "/cgimap-container-s…"   0.0.0.0:32935->8000/tcp                          project_cgimap_1
    1d039d94f71d   project_oauth-proxy    "/root/go/bin/oauth2…"   0.0.0.0:4180->4180/tcp                           project_oauth-proxy_1
-   afdeaf8b1429   mdillon/postgis        "docker-entrypoint.s…"   5432/tcp                                         project_mapwarper-db_1
+   afdeaf8b1429   mdillon/postgis        "docker-entrypoint.s…"   5432/tcp                                         project_warper-db_1
    750b55e3ae1f   redis                  "docker-entrypoint.s…"   6379/tcp                                         project_redis_1
    707c200a13e8   postgres:11            "docker-entrypoint.s…"   5432/tcp                                         project_editor-db_1
    ```
@@ -110,7 +110,7 @@ for editor, or http://localhost/w/ for mapwarper.
        internally to the relevant other service
      * oauth-proxy: handles all authentication
      * editor: editor-website rails app
-     * mapwarper: mapwarper rails app
+     * warper: warper rails app
 
    The other containers are local instances of postgres/postgis/redis servers which are needed by
    the project_ services.  In production we use GCP managed versions of these services.
@@ -122,7 +122,7 @@ for editor, or http://localhost/w/ for mapwarper.
    filesystem and running processes for the container.  In particular, you can
    use this to view the nginx config, application log files, or running processes.
 
-1. All the config files and application code for the editor and mapwarper apps,
+1. All the config files and application code for the editor and warper apps,
    as well as all nginx conf files, are "mounted" inside the containers from
    their corresponding location in the 'Project' directory on your workstation (the
    docker "host").  You can edit these files with an editor on the host, and the
@@ -130,7 +130,7 @@ for editor, or http://localhost/w/ for mapwarper.
    that determine which files/dirs get mounted in each container, and where, are
    given by the "volumes" directives in the `docker-compose.yml` file.
 
-1. Inside any of the nginx containers (editor, mapwarper, fe), run
+1. Inside any of the nginx containers (editor, warper, fe), run
    `nginx -s reload`
    to restart nginx after changing either the nginx conf or any of the
    application files.
