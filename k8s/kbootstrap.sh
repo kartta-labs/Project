@@ -109,6 +109,15 @@ set -x
 # create PersistentVolume (nfs mount) called mapwarper-fileserver
 ${script_dir}/kapply k8s/mapwarper-filestore-storage.yaml.in
 
+###
+### Reservoir managed NAS file storage
+###
+gcloud filestore instances create reservoir-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=reservoirfileshare,capacity=1TB --network=name=default
+set +x
+add_secret ${secrets_env_file} RESERVOIR_NFS_SERVER "`gcloud filestore instances describe reservoir-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])"`"
+set -x
+# create PersistentVolume (nfs mount) called reservoir-fileserver
+${script_dir}/kapply k8s/reservoir-filestore-storage.yaml.in
 
 ###
 ### create services
@@ -118,7 +127,7 @@ ${script_dir}/kcreate k8s/editor-service.yaml.in
 ${script_dir}/kcreate k8s/fe-service.yaml.in
 ${script_dir}/kcreate k8s/mapwarper-service.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-service.yaml.in
-${script_dir}/kcreate k8s/h3dmr-service.yaml.in
+${script_dir}/kcreate k8s/h3dmr-service.yaml.in # TODO: Replace this with Reservoir config.
 
 ###
 ### clone code repos
@@ -126,6 +135,7 @@ ${script_dir}/kcreate k8s/h3dmr-service.yaml.in
 git clone ${EDITOR_REPO} editor-website
 git clone ${MAPWARPER_REPO} mapwarper
 git clone ${CGIMAP_REPO} openstreetmap-cgimap
+git clone ${RESERVOIR_REPO} reservoir
 
 
 ###
@@ -157,6 +167,11 @@ gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/cgimap:${CGIMA
 export MAPWARPER_SHORT_SHA=`(cd mapwarper ; git rev-parse --short HEAD)`
 gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/mapwarper" "--substitutions=SHORT_SHA=${MAPWARPER_SHORT_SHA}"  --config k8s/cloudbuild-mapwarper.yaml .
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/mapwarper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/mapwarper:latest"
+
+# Reservoir
+export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
+gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-mapwarper.yaml ./reservoir
+gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/reservoir:${RESERVOIR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/reservoir:latest"
 
 
 
