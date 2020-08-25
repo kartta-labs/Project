@@ -1,8 +1,8 @@
 /bin/rm -f /etc/nginx/sites-enabled/default
 
-/bin/bash /container/config/editor/create-configs
+/bin/sh /container/config/editor/create-configs
 
-/bin/bash /container/config/editor/precompile-assets
+/bin/sh /container/config/editor/precompile-assets
 
 chmod -R a+r /srv/editor-website
 find /srv/editor-website -type d -exec chmod a+x \{\} \;

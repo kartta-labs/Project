@@ -1,4 +1,4 @@
-/bin/bash /container/tools/subst \
+/bin/sh /container/tools/subst \
   /container/secrets/secrets.env \
   /container/config/editor/database.yml.in       /srv/editor-website/config/database.yml \
   /container/config/editor/storage.yml.in        /srv/editor-website/config/storage.yml \
