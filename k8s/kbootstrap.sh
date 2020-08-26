@@ -38,8 +38,9 @@ fi
 
 . ${secrets_env_file}
 
-# set warper rails env to "production" in secrets file
+# k8s-specific secrets settings which override the defaults:
 add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
+add_secret ${secrets_env_file} MAPWARPER_GOOGLE_STORAGE_ENABLED "true"
 add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
 add_secret ${secrets_env_file} ID_DEV ""
 add_secret ${secrets_env_file} FORCE_HTTPS "true"
