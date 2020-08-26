@@ -1,12 +1,20 @@
-#! /bin/bash
+#! /bin/sh
 
-/bin/bash /container/config/warper/create-configs
+/bin/sh /container/config/warper/create-configs
 
 . /container/secrets/secrets.env
 
 export RAILS_ENV=${MAPWARPER_RAILS_ENV}
 
 cd /app
+
+RETRIES=5
+
+until psql -h ${MAPWARPER_DB_HOST} -U ${MAPWARPER_DB_USER} -c "select 1" > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+  echo "Waiting for postgres server, $((RETRIES--)) remaining attempts..."
+  sleep 2
+done
+
 
 rake db:create
 rake db:migrate
