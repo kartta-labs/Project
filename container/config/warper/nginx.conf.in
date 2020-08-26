@@ -35,6 +35,11 @@ server {
         try_files ${D}uri =404;
     }
 
+    location ${MAPWARPER_SITE_PREFIX}/shared/uploads/ {
+        rewrite ^${MAPWARPER_SITE_PREFIX}(/.*)${D} ${D}1;
+        try_files ${D}uri =404;
+    }
+
     location ${MAPWARPER_SITE_PREFIX}/admin/api/v1/ {
         # disallow access to this from the external facing port; note it's still accessible internally
         # at port ${MAPWARPER_INTERNAL_PORT}.
