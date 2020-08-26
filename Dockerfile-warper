@@ -2,8 +2,12 @@
 
 FROM ubuntu:18.04
 
-RUN apt-get update -qq 
-RUN apt-get install -y --no-install-recommends build-essential ruby-dev nodejs libpq-dev postgresql-client ruby-mapscript zlib1g-dev liblzma-dev imagemagick gdal-bin curl gnupg python-pip logrotate nginx-full gettext-base
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+  build-essential git curl \
+  ruby-dev nodejs libpq-dev postgresql-client ruby-mapscript \
+  zlib1g-dev liblzma-dev imagemagick gdal-bin gnupg \
+  python-pip python-setuptools \
+  logrotate nginx-full gettext-base
 
 RUN pip install -U pillow modestmaps google-cloud-storage
 

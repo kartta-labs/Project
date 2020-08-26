@@ -10,11 +10,10 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 561F9B9CAC
 RUN apt-get install -y --no-install-recommends apt-transport-https ca-certificates
 RUN sh -c 'echo deb https://oss-binaries.phusionpassenger.com/apt/passenger stretch main > /etc/apt/sources.list.d/passenger.list'
 
-RUN apt-get update -qq
 RUN mkdir -p /usr/share/man/man1
 RUN mkdir -p /usr/share/man/man7
 
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
   logrotate imagemagick postgresql-client nodejs phantomjs build-essential \
   libpqxx-dev libmagickwand-dev libxml2-dev libxslt1-dev libsasl2-dev libffi-dev \
   libgd-dev libarchive-dev libbz2-dev nginx-full libnginx-mod-http-passenger \
