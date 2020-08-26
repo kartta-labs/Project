@@ -1,10 +1,15 @@
 # docker build -t cgimap:latest -f Dockerfile-cgimap .
 
-FROM ubuntu:18.04
+FROM debian:bullseye-slim
 
 RUN apt-get update -qq
 
-RUN apt-get install -y build-essential git logrotate vim emacs curl iputils-ping automake libxml2-dev libpqxx-dev libmemcached-dev libboost-dev libboost-regex-dev libboost-program-options-dev libboost-date-time-dev libboost-filesystem-dev libboost-system-dev libboost-locale-dev libfcgi-dev libcrypto++-dev libtool gettext-base
+RUN apt-get install -y --no-install-recommends \
+  build-essential logrotate automake \
+  libxml2-dev libpqxx-dev libmemcached-dev libboost-dev libboost-regex-dev \
+  libboost-program-options-dev libboost-date-time-dev libboost-filesystem-dev \
+  libboost-system-dev libboost-locale-dev libfcgi-dev libcrypto++-dev zlib1g-dev \
+  libtool gettext-base
 
 RUN mkdir -p /srv/openstreetmap-cgimap
 
