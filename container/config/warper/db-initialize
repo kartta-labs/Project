@@ -5,6 +5,7 @@
 . /container/secrets/secrets.env
 
 export RAILS_ENV=${MAPWARPER_RAILS_ENV}
+export SECRET_KEY_BASE="${MAPWARPER_SECRET_KEY_BASE}"
 
 cd /app
 
