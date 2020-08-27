@@ -54,6 +54,16 @@ function clone_reservoir {
 
 function reservoir_cloud_build {
   export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
+
+  # copy the container config and secrets to the ./reservoir subdirectory to be packaged with the source
+  if [ -d ./reservoir/container ]
+  then
+    echo "Cleaning ./reservoir/container"
+    rm -rf ./reservoir/container
+  fi
+  
+  cp -R ./container ./reservoir
+  
   
   gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-reservoir.yaml ./reservoir
 
