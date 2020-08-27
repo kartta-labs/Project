@@ -24,6 +24,9 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Load common functions
 . ${script_dir}/functions.sh
 
+# Load Reservoir functions
+. ${script_dir}/reservoir_functions.sh
+
 # make sure the secrets file is present
 secrets_env_file="./container/secrets/secrets.env"
 
@@ -114,12 +117,8 @@ ${script_dir}/kapply k8s/warper-filestore-storage.yaml.in
 ###
 ### Reservoir managed NAS file storage
 ###
-gcloud filestore instances create reservoir-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=reservoirfshr,capacity=1TB --network=name=default
-set +x
-add_secret ${secrets_env_file} RESERVOIR_NFS_SERVER "`gcloud filestore instances describe reservoir-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])"`"
-set -x
-# create PersistentVolume (nfs mount) called reservoir-fileserver
-${script_dir}/kapply k8s/reservoir-filestore-storage.yaml.in
+reservoir_create_nas
+reservoir_create_pvc
 
 ###
 ### create services
@@ -171,11 +170,7 @@ gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/warper" "--substit
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/warper:latest"
 
 # Reservoir
-export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-reservoir.yaml ./reservoir
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/reservoir:${RESERVOIR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/reservoir:latest"
-
-
+reservoir_cloud_build
 
 ###
 ### editor database
