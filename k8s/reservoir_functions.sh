@@ -22,8 +22,10 @@ reservoir_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 &
 . ${reservoir_script_dir}/functions.sh
 
 # Name of cloud-sql instance.
-RESERVOIR_DB_INSTANCE="reservoir-sql"
+RESERVOIR_DB_INSTANCE="reservoir-db"
 RESERVOIR_DB_NAME="reservoir"
+RESERVOIR_SA="reservoir-sa"
+RESERVOIR_DB_SECRETS="reservoir-db"
 
 LOG_INFO() {
     echo "[kbootstrap reservoir INFO $(date +"%Y-%m-%d %T %Z")] $1"
@@ -64,16 +66,20 @@ function reservoir_cloud_build {
   
   cp -R ./container ./reservoir
   
+
+  LOG_INFO "CLOUDBUILD_LOGS_BUCKET: ${CLOUDBUILD_LOGS_BUCKET}"
   
-  gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-reservoir.yaml ./reservoir
+  gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" \
+    "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" \
+    --config k8s/cloudbuild-reservoir.yaml \
+    --verbosity=info \
+    ./reservoir
 
   if [ $? -ne 0 ]
   then
     LOG_INFO "Failed to submit gcloud build"
     return 1
   fi
-  
-  gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/reservoir:${RESERVOIR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/reservoir:latest"
 }
 
 function get_reservoir_nfs_server_ip {
@@ -92,8 +98,6 @@ function reservoir_create_nas {
   get_reservoir_nfs_server_ip
 }
 
-
-
 function reservoir_create_pvc {
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
@@ -108,16 +112,16 @@ function reservoir_create_pvc {
 }
 
 
-function reservoir_get_db_host {
-  RESERVOIR_DB_HOST=$(gcloud beta sql instances describe "${RESERVOIR_DB_INSTANCE}" --format="value(ipAddresses.ipAddress)")
+function reservoir_get_db_ip {
+  RESERVOIR_DB_IP=$(gcloud beta sql instances describe "${RESERVOIR_DB_INSTANCE}" --format="value(ipAddresses.ipAddress)")
   
-  if [ -z "${RESERVOIR_DB_HOST}" ]
+  if [ -z "${RESERVOIR_DB_IP}" ]
   then
     LOG_INFO "Failed to retrieve reservoir db host ip."
     return 1
   fi
   
-  LOG_INFO "RESERVOIR_DB_HOST: ${RESERVOIR_DB_HOST}"
+  LOG_INFO "RESERVOIR_DB_IP: ${RESERVOIR_DB_IP}"
 }
 
 function reservoir_activate_hstore_db {
@@ -127,17 +131,82 @@ function reservoir_activate_hstore_db {
     return 1
   fi
 
-  gcloud sql connect "${RESERVOIR_DB_INSTANCE}" --user="${RESERVOIR_DB_USER}" --password="${RESERVOIR_DB_PASSWORD}"
+  gcloud sql connect "${RESERVOIR_DB_INSTANCE}" \
+    --user="${RESERVOIR_DB_USER}" #\
+    # --password="${RESERVOIR_DB_PASSWORD}"
 }
 
-function reservoir_create_db {
+function reservoir_create_service_account {
+
+
+  if [ ! $(gcloud iam service-accounts list --filter="${RESERVOIR_SA}") ]
+  then
+    LOG_INFO "Creating ${RESERVOIR_SA} service account."
+    gcloud iam service-accounts create "${RESERVOIR_SA}" \
+      --display-name="${RESERVOIR_SA}" \
+      --description='Reservoir access for cloud sql'
+  else
+    LOG_INFO "Service account ${RESERVOIR_SA} exists"
+  fi
+
+
+  LOG_INFO "Binding reservoir-sa to cloudsql access."
+  gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+    --member=serviceAccount:${RESERVOIR_SA}@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
+    --role=roles/cloudsql.admin
+  
+  gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+    --member=serviceAccount:${RESERVOIR_SA}@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
+    --role=roles/cloudsql.client
+  
+  gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+    --member=serviceAccount:${RESERVOIR_SA}@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
+    --role=roles/cloudsql.editor
+}
+
+function reservoir_service_account_db {
+  RESERVOIR_DB_SA_TMP_DIR="/tmp/reservoir"
+
+  if [ ! -d "${RESERVOIR_DB_SA_TMP_DIR}" ]
+  then
+    LOG_INFO "Creating ${RESERVOIR_DB_SA_TMP_DIR}"
+    mkdir "${RESERVOIR_DB_SA_TMP_DIR}"
+  fi
+  
+  if [ -z "${GCP_PROJECT_ID}" ]
+  then
+    LOG_INFO "Please specify GCP_PROJECTID env variable."
+  fi
+
+  if [ -z "${RESERVOIR_SA}" ]
+  then
+    LOG_INFO "Please specify RESERVOIR_SA env variable."
+  fi
+
+  LOG_INFO "Creating new reservoir-sa service account key."
+  gcloud iam service-accounts keys create "${RESERVOIR_DB_SA_TMP_DIR}/key.json" \
+    --iam-account ${RESERVOIR_SA}@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+
+  LOG_INFO "SA KEY: $(cat ${RESERVOIR_DB_SA_TMP_DIR}/key.json)"
+
+  if [ "$(kubectl get secrets "${RESERVOIR_SA}")" ]
+  then
+    LOG_INFO "Deleteing old ${RESERVOIR_SA} key."
+    kubectl delete secrets "${RESERVOIR_SA}"
+  fi
+  
+  kubectl create secret generic "${RESERVOIR_SA}" \
+    --from-file=service_account.json="${RESERVOIR_DB_SA_TMP_DIR}/key.json"  
+}
+
+function reservoir_create_db_instance {
 
   gcloud sql databases list --instance="${RESERVOIR_DB_INSTANCE}"
 
   if [ $? -ne 0 ]
   then
     LOG_INFO "Creating new reservoir database instance: ${RESERVOIR_DB_INSTANCE}"
-      gcloud beta sql instances create "${RESERVOIR_DB_INSTANCE}" --cpu=1 --memory=7680MiB --cpu=2 \
+      gcloud beta sql instances create "${RESERVOIR_DB_INSTANCE}" --cpu=2 --memory=7680MiB \
     --database-version=POSTGRES_12 --zone=${GCP_ZONE} --storage-type=SSD \
     --network=default --database-flags temp_file_limit=2147483647 --no-assign-ip
   fi
@@ -148,15 +217,23 @@ function reservoir_create_db {
     return 1
   fi
   
-  reservoir_get_db_host
+  # reservoir_get_db_ip
 
   add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE "${RESERVOIR_DB_INSTANCE}"
   add_secret ${secrets_env_file} RESERVOIR_DB_NAME "${RESERVOIR_DB_NAME}"
-  add_secret ${secrets_env_file} RESERVOIR_DB_HOST "${RESERVOIR_DB_HOST}"
+  add_secret ${secrets_env_file} RESERVOIR_DB_HOST "127.0.0.1" # Use proxy side car.
   add_secret ${secrets_env_file} RESERVOIR_DB_USER "reservoir"
   add_secret ${secrets_env_file} RESERVOIR_DB_PASSWORD "$(generate_password)"
 
   gcloud beta sql databases create "${RESERVOIR_DB_NAME}" --instance="${RESERVOIR_DB_INSTANCE}"
   
-  gcloud beta sql users create "${RESERVOIR_DB_USER}" --instance="${RESERVOIR_DB_INSTANCE}" "--password=${RESERVOIR_DB_PASSWORD}" 
+  gcloud beta sql users create "${RESERVOIR_DB_USER}" --instance="${RESERVOIR_DB_INSTANCE}" "--password=${RESERVOIR_DB_PASSWORD}"
+
+  
+  # if [ "$(kubectl get secrets ${RESERVOIR_DB_SECRETS})" ]
+  # then
+  #   LOG_INFO "Deleting stale reservoir db credentials: ${RESERVOIR_DB_SECRETS} from cluster."
+  #   kubectl delete secrets "${RESERVOIR_DB_SECRETS}"
+  # fi
 }
+
