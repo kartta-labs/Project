@@ -5,7 +5,7 @@
   /container/config/warper/application.yml.in          /app/config/application.yml \
   /container/config/warper/database.yml.in             /app/config/database.yml \
   /container/config/warper/nginx.conf.in               /etc/nginx/sites-enabled/warper \
-  /container/config/warper/warper-rails-start.sh.in /warper-rails-start.sh
+  /container/config/warper/warper-rails-start.sh.in    /warper-rails-start.sh
   
 
 . /container/secrets/secrets.env

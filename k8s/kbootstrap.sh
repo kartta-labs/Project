@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 #
 # Copyright 2020 Google LLC
 #
@@ -53,7 +53,8 @@ set -x
 gcloud config set project ${GCP_PROJECT_ID}
 gcloud config set compute/zone ${GCP_ZONE}
 gcloud services enable cloudbuild.googleapis.com container.googleapis.com containerregistry.googleapis.com file.googleapis.com redis.googleapis.com servicenetworking.googleapis.com sql-component.googleapis.com sqladmin.googleapis.com storage-api.googleapis.com storage-component.googleapis.com vision.googleapis.com
-gcloud container clusters create kartta-cluster1  --zone ${GCP_ZONE} --release-channel stable --enable-ip-alias --machine-type "n1-standard-4" --num-nodes=3
+export KLUSTER="${GCP_PROJECT_ID}-k1"
+gcloud container clusters create ${KLUSTER} --zone ${GCP_ZONE} --release-channel stable --enable-ip-alias --machine-type "n1-standard-4" --num-nodes=3
 gcloud compute addresses create google-managed-services-default --global --purpose=VPC_PEERING --prefix-length=20 --network=default
 gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --network=default --ranges=google-managed-services-default
 cloudbuild_logs_bucket_suffix=$(generate_bucket_suffix)
@@ -113,7 +114,7 @@ ${script_dir}/kapply k8s/warper-filestore-storage.yaml.in
 ###
 ### Reservoir managed NAS file storage
 ###
-gcloud filestore instances create reservoir-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=reservoirfileshare,capacity=1TB --network=name=default
+gcloud filestore instances create reservoir-fs --project=${GCP_PROJECT_ID} --zone=${GCP_ZONE} --tier=STANDARD --file-share=name=reservoirfshr,capacity=1TB --network=name=default
 set +x
 add_secret ${secrets_env_file} RESERVOIR_NFS_SERVER "`gcloud filestore instances describe reservoir-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])"`"
 set -x
@@ -171,7 +172,7 @@ gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWA
 
 # Reservoir
 export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-warper.yaml ./reservoir
+gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}" --config k8s/cloudbuild-reservoir.yaml ./reservoir
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/reservoir:${RESERVOIR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/reservoir:latest"
 
 

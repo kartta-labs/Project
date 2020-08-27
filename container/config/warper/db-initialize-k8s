@@ -1,14 +1,14 @@
+#!/bin/sh
+
 . /container/secrets/secrets.env
 
 echo "*:*:*:postgres:${MAPWARPER_POSTGRES_PASSWORD}" > ~/.pgpass
 chmod 0600 ~/.pgpass
 
-psql -U postgres -h ${MAPWARPER_DB_HOST} -d ${MAPWARPER_DB_NAME} <<EOF
-\c ${MAPWARPER_DB_NAME};
-create extension postgis;
-EOF
+psql -U postgres -h ${MAPWARPER_DB_HOST} -d ${MAPWARPER_DB_NAME} \
+  -c " create extension postgis;"
 
-/bin/bash /container/config/warper/create-configs
+/bin/sh /container/config/warper/create-configs
 
 export RAILS_ENV=${MAPWARPER_RAILS_ENV}
 export SECRET_KEY_BASE="${MAPWARPER_SECRET_KEY_BASE}"
