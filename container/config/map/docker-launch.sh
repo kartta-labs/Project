@@ -1,13 +1,14 @@
 /bin/bash /container/tools/subst \
   /container/secrets/secrets.env \
-  /container/config/map/config.env.in   /map/config.env
+  /container/config/map/config.yml.in   /map/config.yml
 
 if [ ! -d /map/build ] ; then
   mkdir /map/build
+  chmod a+rwx /map/build
 fi
 
 cd /map
 python ./build-all.py --watch &
 
 cd /map/build
-python -m SimpleHTTPServer ${MAP_PORT}
+python3 -m http.server ${MAP_PORT}
