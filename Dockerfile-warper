@@ -3,7 +3,7 @@
 FROM ubuntu:18.04
 
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-  build-essential git curl \
+  build-essential git curl file \
   ruby-dev nodejs libpq-dev postgresql-client ruby-mapscript \
   zlib1g-dev liblzma-dev imagemagick gdal-bin gnupg \
   python-pip python-setuptools \
