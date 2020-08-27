@@ -7,7 +7,4 @@
   /container/config/warper/nginx.conf.in               /etc/nginx/sites-enabled/warper \
   /container/config/warper/warper-rails-start.sh.in    /warper-rails-start.sh
   
-
 . /container/secrets/secrets.env
-
-echo ${MAPWARPER_SA_KEY_JSON} > /warper-sa-key.json

@@ -72,11 +72,8 @@ gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.client
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.editor
 gcloud iam service-accounts keys create /tmp/warper-service-account.json --iam-account warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com
-
-set +x
-add_secret_from_file ${secrets_env_file} MAPWARPER_SA_KEY_JSON /tmp/warper-service-account.json
+cat /tmp/warper-service-account.json > container/secrets/warper-service-account.json
 rm -f /tmp/warper-service-account.json
-set -x
 
 ###
 ### warper storage buckets
