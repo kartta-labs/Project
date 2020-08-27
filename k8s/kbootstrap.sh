@@ -25,7 +25,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 . ${script_dir}/functions.sh
 
 # Load Reservoir functions
-. ${script_dir}/reservoir_functions.sh
+# . ${script_dir}/reservoir_functions.sh
 
 # make sure the secrets file is present
 secrets_env_file="./container/secrets/secrets.env"
@@ -114,8 +114,8 @@ ${script_dir}/kapply k8s/warper-filestore-storage.yaml.in
 ###
 ### Reservoir managed NAS file storage
 ###
-reservoir_create_nas
-reservoir_create_pvc
+# reservoir_create_nas
+# reservoir_create_pvc
 
 ###
 ### create services
@@ -167,7 +167,7 @@ gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/warper" "--substit
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/warper:latest"
 
 # Reservoir
-reservoir_cloud_build
+# reservoir_cloud_build
 
 ###
 ### editor database
