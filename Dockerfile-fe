@@ -1,12 +1,10 @@
 # docker build -t fe:latest -f Dockerfile-fe .
 
-FROM ubuntu:18.04
+FROM debian:buster-slim
 
-RUN apt-get update -qq
+RUN apt-get update -qq \
+  && apt-get install -y --no-install-recommends logrotate nginx-full gettext-base
 
-RUN apt-get install -y logrotate nginx-full iputils-ping gettext-base
-
-RUN mkdir -p /srv
 RUN mkdir -p /srv
 
 COPY ./public /srv/public

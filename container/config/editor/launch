@@ -2,8 +2,6 @@
 
 /bin/sh /container/config/editor/create-configs
 
-/bin/sh /container/config/editor/precompile-assets
-
 chmod -R a+r /srv/editor-website
 find /srv/editor-website -type d -exec chmod a+x \{\} \;
 chmod -R a+w /srv/editor-website/tmp

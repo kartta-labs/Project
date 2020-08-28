@@ -25,7 +25,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 . ${script_dir}/functions.sh
 
 # Load Reservoir functions
-. ${script_dir}/reservoir_functions.sh
+# . ${script_dir}/reservoir_functions.sh
 
 # make sure the secrets file is present
 secrets_env_file="./container/secrets/secrets.env"
@@ -71,11 +71,8 @@ gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.client
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} --member=serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com --role=roles/cloudsql.editor
 gcloud iam service-accounts keys create /tmp/warper-service-account.json --iam-account warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com
-
-set +x
-add_secret_from_file ${secrets_env_file} MAPWARPER_SA_KEY_JSON /tmp/warper-service-account.json
+cat /tmp/warper-service-account.json > container/secrets/warper-service-account.json
 rm -f /tmp/warper-service-account.json
-set -x
 
 ###
 ### warper storage buckets
@@ -116,8 +113,8 @@ ${script_dir}/kapply k8s/warper-filestore-storage.yaml.in
 ###
 ### Reservoir managed NAS file storage
 ###
-reservoir_create_nas
-reservoir_create_pvc
+# reservoir_create_nas
+# reservoir_create_pvc
 
 ###
 ### create services
@@ -169,7 +166,7 @@ gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/warper" "--substit
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/warper:latest"
 
 # Reservoir
-reservoir_cloud_build
+# reservoir_cloud_build
 
 ###
 ### editor database

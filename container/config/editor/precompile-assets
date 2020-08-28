@@ -4,5 +4,4 @@ cd /srv/editor-website
 
 export RAILS_ENV=${EDITOR_RAILS_ENV}
 
-bundle exec rake assets:clobber
 bundle exec rake i18n:js:export assets:precompile
