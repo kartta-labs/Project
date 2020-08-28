@@ -49,6 +49,7 @@ fi
 
 case $arg in
   maps|all)
+    ./dcwrapper -f ./docker-compose.yml ${enabled_services} down --remove-orphans
     ./dcwrapper -f ./docker-compose.yml ${enabled_services} up --remove-orphans
     ;;
   reservoir)
