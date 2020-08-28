@@ -219,21 +219,15 @@ function reservoir_create_db_instance {
   
   # reservoir_get_db_ip
 
-  add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE "${RESERVOIR_DB_INSTANCE}"
-  add_secret ${secrets_env_file} RESERVOIR_DB_NAME "${RESERVOIR_DB_NAME}"
-  add_secret ${secrets_env_file} RESERVOIR_DB_HOST "127.0.0.1" # Use proxy side car.
   add_secret ${secrets_env_file} RESERVOIR_DB_USER "reservoir"
   add_secret ${secrets_env_file} RESERVOIR_DB_PASSWORD "$(generate_password)"
-
+  add_secret ${secrets_env_file} RESERVOIR_DB_HOST "127.0.0.1" # Use proxy side car.
+  add_secret ${secrets_env_file} RESERVOIR_DB_PORT "5432"
+  add_secret ${secrets_env_file} RESERVOIR_DB_NAME "${RESERVOIR_DB_NAME}"
+  add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE "${RESERVOIR_DB_INSTANCE}"
+  add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE_CONNECTION_NAME "${GCP_PROJECT_ID}:${GCP_REGION}:${RESERVOIR_DB_INSTANCE}=tcp:${RESERVOIR_DB_PORT}"
   gcloud beta sql databases create "${RESERVOIR_DB_NAME}" --instance="${RESERVOIR_DB_INSTANCE}"
   
   gcloud beta sql users create "${RESERVOIR_DB_USER}" --instance="${RESERVOIR_DB_INSTANCE}" "--password=${RESERVOIR_DB_PASSWORD}"
-
-  
-  # if [ "$(kubectl get secrets ${RESERVOIR_DB_SECRETS})" ]
-  # then
-  #   LOG_INFO "Deleting stale reservoir db credentials: ${RESERVOIR_DB_SECRETS} from cluster."
-  #   kubectl delete secrets "${RESERVOIR_DB_SECRETS}"
-  # fi
 }
 
