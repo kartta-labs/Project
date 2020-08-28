@@ -1,6 +1,6 @@
 defaults: &defaults
   site_prefix: "${MAPWARPER_SITE_PREFIX}"
-  kartta_assets_path: "/assets"
+  shared_assets_path: "/assets"
   signup_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}${EDITOR_SITE_PREFIX}/user/new"
   signout_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}${EDITOR_SITE_PREFIX}/logout"
   trace_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}${EDITOR_SITE_PREFIX}/edit#map="
