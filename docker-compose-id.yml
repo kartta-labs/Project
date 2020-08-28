@@ -1,0 +1,11 @@
+version: '3.3'
+services:
+  id:
+    build:
+      context: .
+      dockerfile: Dockerfile-id
+    ports:
+      - "8777:8080"
+    entrypoint: ["/bin/bash", "/iD/launch"]
+    volumes:
+      - ./iD:/iD

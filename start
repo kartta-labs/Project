@@ -43,6 +43,9 @@ fi
 if [ "${ENABLE_RESERVOIR}" != "" ] ; then
   enabled_services="${enabled_services} -f ./reservoir/docker-compose.yml"
 fi
+if [ "${ENABLE_FE_ID}" != "" ] ; then
+  enabled_services="${enabled_services} -f docker-compose-id.yml"
+fi
 
 case $arg in
   maps|all)
