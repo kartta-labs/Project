@@ -84,6 +84,7 @@ services:
       - ./container/tools:/container/tools
       - ./container/secrets:/container/secrets
       - ./container/config/fe:/container/config/fe
+      - ./public:/srv/public
     ports:
       - "${HOST_PORT}:${FE_PORT}"
     depends_on:

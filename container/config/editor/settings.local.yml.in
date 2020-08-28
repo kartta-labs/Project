@@ -16,6 +16,8 @@ site_host: "${EDITOR_SERVER_NAME}"
 site_prefix: "${EDITOR_SITE_PREFIX}"
 sign_out_path: "/oauth2/sign_out"
 
+kartta_assets_path: "/assets"
+
 other_user_db_update_url: "${EDITOR_OTHER_USER_DB_UPDATE_URL}"
 other_user_db_delete_url: "${EDITOR_OTHER_USER_DB_DELETE_URL}"
 
