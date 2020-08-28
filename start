@@ -37,8 +37,8 @@ fi
 
 enabled_services=""
 
-if [ "${ENABLE_MAP}" != "" ] ; then
-  enabled_services="${enabled_services} -f docker-compose-map.yml"
+if [ "${ENABLE_KARTTA}" != "" ] ; then
+  enabled_services="${enabled_services} -f docker-compose-kartta.yml"
 fi
 if [ "${ENABLE_RESERVOIR}" != "" ] ; then
   enabled_services="${enabled_services} -f ./reservoir/docker-compose.yml"

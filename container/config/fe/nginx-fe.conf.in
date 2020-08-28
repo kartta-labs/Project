@@ -106,21 +106,21 @@ __IF${ENABLE_RESERVOIR}THEN__
     }
 __ENDIF__
 
-__IF${ENABLE_MAP}THEN__
+__IF${ENABLE_KARTTA}THEN__
     location = / {
-        return 302 ${D}scheme://${D}http_host${MAP_SITE_PREFIX}/;
+        return 302 ${D}scheme://${D}http_host${KARTTA_SITE_PREFIX}/;
     }
 
-    location ${MAP_SITE_PREFIX} {
-        return 302 ${D}scheme://${D}http_host${MAP_SITE_PREFIX}/;
+    location ${KARTTA_SITE_PREFIX} {
+        return 302 ${D}scheme://${D}http_host${KARTTA_SITE_PREFIX}/;
     }      
 
-    location ${MAP_SITE_PREFIX}/ {
-        rewrite ${MAP_SITE_PREFIX}/(.*) /${D}1 break;
-        proxy_pass http://map:${MAP_PORT};
+    location ${KARTTA_SITE_PREFIX}/ {
+        rewrite ${KARTTA_SITE_PREFIX}/(.*) /${D}1 break;
+        proxy_pass http://kartta:${KARTTA_PORT};
         proxy_redirect off;
         proxy_set_header Host ${D}host;
-        access_log /var/log/nginx/map.access.log combined;
+        access_log /var/log/nginx/kartta.access.log combined;
     }
 __ENDIF__
 

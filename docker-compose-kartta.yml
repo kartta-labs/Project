@@ -1,0 +1,14 @@
+version: '3.3'
+services:
+  kartta:
+    build:
+      context: ./kartta
+      dockerfile: Dockerfile
+    entrypoint: ["/bin/bash", "/container/config/kartta/docker-launch.sh"]
+    volumes:
+      - ./container/tools:/container/tools
+      - ./container/secrets:/container/secrets
+      - ./container/config/kartta:/container/config/kartta
+      - ./kartta:/kartta
+    ports:
+      - "${KARTTA_PORT}"
