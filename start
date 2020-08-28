@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright 2020 Google LLC
 #
@@ -21,19 +21,35 @@
 
 arg=$1
 
-if [ "$arg" == "" ] ; then
-  arg="maps"
+if [ "$arg" = "" ] ; then
+  arg="all"
+fi
+
+
+SECRETS_ENV_FILE="./container/secrets/secrets.env"
+
+if [ \! -f "${SECRETS_ENV_FILE}" ] ; then
+  echo "Before continuing you should create the file ${SECRETS_ENV_FILE}"
+  exit -1
+fi
+
+. ${SECRETS_ENV_FILE}
+
+enabled_services=""
+
+if [ "${ENABLE_MAP}" != "" ] ; then
+  enabled_services="${enabled_services} -f docker-compose-map.yml"
+fi
+if [ "${ENABLE_RESERVOIR}" != "" ] ; then
+  enabled_services="${enabled_services} -f ./reservoir/docker-compose.yml"
 fi
 
 case $arg in
-  maps)
-    ./dcwrapper -f ./docker-compose.yml -f ./reservoir/docker-compose.yml up --remove-orphans
+  maps|all)
+    ./dcwrapper -f ./docker-compose.yml ${enabled_services} up --remove-orphans
     ;;
   reservoir)
     ./dcwrapper -f ./docker-compose.empty.yml -f ./reservoir/docker-compose.yml up --remove-orphans
-    ;;
-  all)
-    ./dcwrapper -f ./docker-compose.yml -f ./reservoir/docker-compose.yml up --remove-orphans
     ;;
   *)
     echo "unrecognized arg: $arg"

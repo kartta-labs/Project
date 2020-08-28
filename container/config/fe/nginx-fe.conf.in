@@ -87,6 +87,7 @@ __ENDIF__
         access_log /var/log/nginx/warper.access.log combined;
     }
 
+__IF${ENABLE_RESERVOIR}THEN__
     location /r {
         return 302 ${D}scheme://${D}http_host/r/;
     }
@@ -103,8 +104,9 @@ __ENDIF__
         access_log /var/log/nginx/reservoir.api.access.log combined;
         error_log /var/log/nginx/reservoir.api.error.log info;
     }
+__ENDIF__
 
-
+__IF${ENABLE_MAP}THEN__
     location = / {
         return 302 ${D}scheme://${D}http_host${MAP_SITE_PREFIX}/;
     }
@@ -120,9 +122,10 @@ __ENDIF__
         proxy_set_header Host ${D}host;
         access_log /var/log/nginx/map.access.log combined;
     }
+__ENDIF__
 
 
-__IF${ID_DEV}THEN__
+__IF${ENABLE_FE_ID}THEN__
     location /id {
              return 302 ${D}scheme://${D}http_host/id/;
     }
