@@ -15,7 +15,7 @@
 (()=>{
   const menuItems = [
       { "menuText": "home",
-        "url": "",
+        "url": "/",
         "logo": "/assets/site-logo-long.png"
       },
       { "menuText": "editor",
