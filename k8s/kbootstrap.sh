@@ -48,8 +48,12 @@ add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
 add_secret ${secrets_env_file} MAPWARPER_GOOGLE_STORAGE_ENABLED "true"
 add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
 add_secret ${secrets_env_file} FORCE_HTTPS "true"
-# for now disable kartta in k8s since k8s deployment for it isn't written yet
+
+# For now disable these in k8s since k8s deployment for them isn't written yet.  Note this is needed
+# to prevent nginx from requiring these.  These lines should be deleted once these apps are configured
+# for k8s:
 add_secret ${secrets_env_file} ENABLE_KARTTA ""
+add_secret ${secrets_env_file} ENABLE_RESERVOIR ""
 
 set -x
 
