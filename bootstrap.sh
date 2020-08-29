@@ -33,11 +33,12 @@ LOG_INFO() {
     echo "[bootstrap.sh INFO $(date +"%Y-%m-%d %T %Z")] $1"
 }
 
-if [ "${MAP_REPO}" != "" ] ; then
-  git clone ${MAP_REPO} map
-  # map repo needs a copy of antqiue repo under it.  There are definitely better ways to do this
+if [ "${ENABLE_KARTTA}" != "" ] ; then
+  git clone ${KARTTA_REPO} kartta
+  # kartta repo needs a copy of antqiue repo under it.  There are definitely better ways to do this
   # (git submodule?), but for now we just clone it manually:
-  (cd map ; git clone ${ANTIQUE_REPO} antique)
+  (cd kartta ; git clone ${ANTIQUE_REPO} antique)
+  sudo ./dcwrapper -f docker-compose-kartta.yml build kartta
 fi
 
 git clone ${EDITOR_REPO} editor-website
@@ -64,29 +65,27 @@ sudo ./dcwrapper down
 git clone ${CGIMAP_REPO} openstreetmap-cgimap
 sudo ./dcwrapper build cgimap
 
-git clone ${ID_REPO} iD
-sudo ./dcwrapper build id
+if [ "${ENABLE_FE_ID}" != "" ] ; then
+  git clone ${ID_REPO} iD
+  sudo ./dcwrapper -f docker-compose-id.yml build id
+fi
 
 sudo ./dcwrapper build fe
 
-
-if [ ! -d "./reservoir" ]
-then
+if [ "${ENABLE_RESERVOIR}" != "" ] ; then
+  if [ ! -d "./reservoir" ] ; then
     LOG_INFO "Cloning Reservoir repository."
     git clone ${RESERVOIR_REPO} reservoir
-else
+  else
     LOG_INFO "Pulling latest Reservoir repository."
     git -C ./reservoir pull origin master
-fi
+  fi
 
-# Hack to ensure all files in Reservoir sub-project are read/write-able by any user (including root).
-./fixperms
+  # Hack to ensure all files in Reservoir sub-project are read/write-able by any user (including root).
+  ./fixperms
 
-LOG_INFO "Building Reservoir image."
-sudo ./dcwrapper -f ./reservoir/docker-compose.yml build reservoir
-
-if [ "${MAP_REPO}" != "" ] ; then
-  sudo ./dcwrapper build map
+  LOG_INFO "Building Reservoir image."
+  sudo ./dcwrapper -f ./reservoir/docker-compose.yml build reservoir
 fi
 
 ) 2>&1 | tee bootstrap.log

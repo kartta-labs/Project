@@ -87,7 +87,56 @@ __ENDIF__
         access_log /var/log/nginx/warper.access.log combined;
     }
 
-    location = / {
-        return 302 ${D}scheme://${D}http_host${MAP_SITE_PREFIX}/;
+__IF${ENABLE_RESERVOIR}THEN__
+    location /r {
+        return 302 ${D}scheme://${D}http_host/r/;
     }
+    
+    location /r/ {
+        include /etc/nginx/shared-conf/oauth-proxy.conf;
+        proxy_pass http://reservoir:${RESERVOIR_PORT};
+        access_log /var/log/nginx/reservoir.access.log combined;
+        error_log /var/log/nginx/reservoir.error.log info;
+    }
+
+    location /r/api/ {
+        proxy_pass http://reservoir:${RESERVOIR_PORT};
+        access_log /var/log/nginx/reservoir.api.access.log combined;
+        error_log /var/log/nginx/reservoir.api.error.log info;
+    }
+__ENDIF__
+
+__IF${ENABLE_KARTTA}THEN__
+    location = / {
+        return 302 ${D}scheme://${D}http_host${KARTTA_SITE_PREFIX}/;
+    }
+
+    location ${KARTTA_SITE_PREFIX} {
+        return 302 ${D}scheme://${D}http_host${KARTTA_SITE_PREFIX}/;
+    }      
+
+    location ${KARTTA_SITE_PREFIX}/ {
+        rewrite ${KARTTA_SITE_PREFIX}/(.*) /${D}1 break;
+        proxy_pass http://kartta:${KARTTA_PORT};
+        proxy_redirect off;
+        proxy_set_header Host ${D}host;
+        access_log /var/log/nginx/kartta.access.log combined;
+    }
+__ENDIF__
+
+
+__IF${ENABLE_FE_ID}THEN__
+    location /id {
+             return 302 ${D}scheme://${D}http_host/id/;
+    }
+    location /id/ {
+             include /etc/nginx/shared-conf/oauth-proxy.conf;
+             rewrite /id(/.*) /${D}1 break;
+             proxy_pass http://id:8080;
+             proxy_redirect off;
+             proxy_set_header Host ${D}host;
+             access_log /var/log/nginx/id.access.log combined;
+    }            
+__ENDIF__
+
 }

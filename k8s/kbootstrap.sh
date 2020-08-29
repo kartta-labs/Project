@@ -24,8 +24,10 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Load common functions
 . ${script_dir}/functions.sh
 
+#if [ "${ENABLE_RESERVOIR}" != "" ]; then
 # Load Reservoir functions
 # . ${script_dir}/reservoir_functions.sh
+#fi
 
 # make sure the secrets file is present
 secrets_env_file="./container/secrets/secrets.env"
@@ -45,8 +47,9 @@ fi
 add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
 add_secret ${secrets_env_file} MAPWARPER_GOOGLE_STORAGE_ENABLED "true"
 add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
-add_secret ${secrets_env_file} ID_DEV ""
 add_secret ${secrets_env_file} FORCE_HTTPS "true"
+# for now disable kartta in k8s since k8s deployment for it isn't written yet
+add_secret ${secrets_env_file} ENABLE_KARTTA ""
 
 set -x
 
@@ -111,11 +114,13 @@ set -x
 # create PersistentVolume (nfs mount) called warper-fileserver
 ${script_dir}/kapply k8s/warper-filestore-storage.yaml.in
 
+#if [ "${ENABLE_RESERVOIR}" != "" ]; then
 ###
 ### Reservoir managed NAS file storage
 ###
 # reservoir_create_nas
 # reservoir_create_pvc
+#fi
 
 ###
 ### create services
@@ -133,8 +138,9 @@ ${script_dir}/kcreate k8s/h3dmr-service.yaml.in # TODO: Replace this with Reserv
 git clone ${EDITOR_REPO} editor-website
 git clone ${MAPWARPER_REPO} warper
 git clone ${CGIMAP_REPO} openstreetmap-cgimap
+#if [ "${ENABLE_RESERVOIR}" != "" ]; then
 git clone ${RESERVOIR_REPO} reservoir
-
+#fi
 
 ###
 ### build & tag latest images
@@ -166,8 +172,10 @@ export MAPWARPER_SHORT_SHA=`(cd warper ; git rev-parse --short HEAD)`
 gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/warper" "--substitutions=SHORT_SHA=${MAPWARPER_SHORT_SHA}"  --config k8s/cloudbuild-warper.yaml .
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/warper:latest"
 
+#if [ "${ENABLE_RESERVOIR}" != "" ]; then
 # Reservoir
 # reservoir_cloud_build
+#fi
 
 ###
 ### editor database

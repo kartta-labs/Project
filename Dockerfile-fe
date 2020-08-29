@@ -5,8 +5,10 @@ FROM debian:buster-slim
 RUN apt-get update -qq \
   && apt-get install -y --no-install-recommends logrotate nginx-full gettext-base
 
-RUN mkdir -p /srv/public
-RUN echo "42" > /srv/public/answer.html
+RUN mkdir -p /srv
+
+COPY ./public /srv/public
+
 RUN chmod -R a+rx /srv
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]

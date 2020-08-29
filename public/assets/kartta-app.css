@@ -1,0 +1,69 @@
+.kartta-cookie-bar {
+    background-color: #eeeeee;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    border-bottom: 1px solid black;
+    padding: 0.8rem 2rem;
+}
+
+.kartta-cookie-bar-left {
+    margin: 0;
+}
+
+.kartta-cookie-bar-ok-link {
+    font-weight: 600;
+    padding: 6px 6px 6px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    background: #1d1dd0;
+    color: white !important;
+}
+
+
+.kartta-app-menu-hidden {
+  display: none;
+}
+
+.kartta-app-menu-logo {
+  width:136px;
+  height:42px;
+  margin: 0;
+  padding: 0;
+}
+
+.kartta-logo-wrapper {
+  margin: 0;
+  padding: 0;
+  width: 136px;
+  height: 42px;
+  position: relative;
+}
+
+.kartta-menu-placer {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: -3px;
+  left: 3px;
+}
+
+.kartta-menu-item {
+  font-size: 16pt;
+  padding-left: 10px;
+  padding-right: 10px;
+  color: #1d1dd0;
+  border-bottom: 1px solid black;
+  background: white;
+}
+
+.kartta-menu-item:hover {
+  color: white;
+  background: #1d1dd0;
+}
+
+
+.kartta-app-menu-dropdown {
+  border: 1px solid black;
+  border-radius: 5px;
+}
