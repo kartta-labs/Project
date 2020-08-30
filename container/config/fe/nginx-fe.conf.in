@@ -8,7 +8,9 @@ __IF${FORCE_HTTPS}THEN__
     }
 __ENDIF__
 
-    root /srv/public;
+    location /assets {
+      root /srv/public;
+    }
 
     # for warper uploads
     client_max_body_size ${FE_CLIENT_MAX_BODY_SIZE};
@@ -107,20 +109,29 @@ __IF${ENABLE_RESERVOIR}THEN__
 __ENDIF__
 
 __IF${ENABLE_KARTTA}THEN__
-    location = / {
-        return 302 ${D}scheme://${D}http_host${KARTTA_SITE_PREFIX}/;
+    location = /faq {
+      proxy_pass http://kartta:${KARTTA_PORT}/faq.html;
+      proxy_redirect off;
+      access_log /var/log/nginx/kartta.access.log combined;
     }
 
-    location ${KARTTA_SITE_PREFIX} {
-        return 302 ${D}scheme://${D}http_host${KARTTA_SITE_PREFIX}/;
-    }      
+    location = /help {
+      proxy_pass http://kartta:${KARTTA_PORT}/help.html;
+      proxy_redirect off;
+      access_log /var/log/nginx/kartta.access.log combined;
+    }
 
-    location ${KARTTA_SITE_PREFIX}/ {
-        rewrite ${KARTTA_SITE_PREFIX}/(.*) /${D}1 break;
-        proxy_pass http://kartta:${KARTTA_PORT};
-        proxy_redirect off;
-        proxy_set_header Host ${D}host;
-        access_log /var/log/nginx/kartta.access.log combined;
+    location = /about {
+      proxy_pass http://kartta:${KARTTA_PORT}/about.html;
+      proxy_redirect off;
+      access_log /var/log/nginx/kartta.access.log combined;
+    }
+
+    location / {
+      proxy_pass http://kartta:${KARTTA_PORT};
+      proxy_redirect off;
+      proxy_set_header Host ${D}host;
+      access_log /var/log/nginx/kartta.access.log combined;
     }
 __ENDIF__
 
