@@ -52,7 +52,6 @@ add_secret ${secrets_env_file} FORCE_HTTPS "true"
 # For now disable these in k8s since k8s deployment for them isn't written yet.  Note this is needed
 # to prevent nginx from requiring these.  These lines should be deleted once these apps are configured
 # for k8s:
-add_secret ${secrets_env_file} ENABLE_KARTTA ""
 add_secret ${secrets_env_file} ENABLE_RESERVOIR ""
 
 set -x
@@ -135,6 +134,10 @@ ${script_dir}/kcreate k8s/fe-service.yaml.in
 ${script_dir}/kcreate k8s/warper-service.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-service.yaml.in
 ${script_dir}/kcreate k8s/h3dmr-service.yaml.in # TODO: Replace this with Reservoir config.
+if [ "${ENABLE_KARTTA}" != "" ]; then
+  ${script_dir}/kcreate k8s/kartta-service.yaml.in
+fi
+
 
 ###
 ### clone code repos
@@ -145,6 +148,10 @@ git clone ${CGIMAP_REPO} openstreetmap-cgimap
 #if [ "${ENABLE_RESERVOIR}" != "" ]; then
 git clone ${RESERVOIR_REPO} reservoir
 #fi
+if [ "${ENABLE_KARTTA}" != "" ]; then
+  git clone ${KARTTA_REPO} kartta
+  (cd kartta ; git clone ${ANTIQUE_REPO} antique)
+fi
 
 ###
 ### build & tag latest images
@@ -180,6 +187,13 @@ gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWA
 # Reservoir
 # reservoir_cloud_build
 #fi
+
+# kartta
+if [ "${ENABLE_KARTTA}" != "" ]; then
+  export KARTTA_SHORT_SHA=`(cd kartta ; git rev-parse --short HEAD)`
+  gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/kartta" "--substitutions=SHORT_SHA=${KARTTA_SHORT_SHA}"  --config k8s/cloudbuild-kartta.yaml kartta
+  gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/kartta:${KARTTA_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/kartta:latest"
+fi
 
 ###
 ### editor database
@@ -280,7 +294,9 @@ ${script_dir}/kcreate k8s/editor-deployment.yaml.in
 ${script_dir}/kcreate k8s/fe-deployment.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-deployment.yaml.in
 ${script_dir}/kcreate k8s/warper-deployment.yaml.in
-
+if [ "${ENABLE_KARTTA}" != "" ]; then
+  ${script_dir}/kcreate k8s/kartta-deployment.yaml.in
+fi
 
 ###
 ### create ssl cert and https ingress
