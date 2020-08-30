@@ -1,0 +1,12 @@
+server {
+    listen ${KARTTA_PORT};
+    server_name ${SERVER_NAME};
+
+    location / {
+      root /kartta/build;
+    }
+
+    location = /healthz {
+      return 200 "ok\n";
+    }
+}

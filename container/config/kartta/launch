@@ -1,0 +1,20 @@
+/bin/rm -f /etc/nginx/sites-enabled/default
+
+/bin/sh /container/tools/subst \
+  /container/secrets/secrets.env \
+  /container/config/kartta/config.yml.in   /kartta/config.yml \
+  /container/config/kartta/nginx-kartta.conf.in /etc/nginx/sites-enabled/kartta
+
+if [ ! -d /kartta/build ] ; then
+  mkdir /kartta/build
+  chmod a+rwx /kartta/build
+fi
+
+cd /kartta
+if [ "$1" = "--watch" ] ; then
+  python3 ./build-all.py --watch &
+else
+  python3 ./build-all.py
+fi
+
+exec nginx -g "daemon off;"

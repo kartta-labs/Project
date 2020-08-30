@@ -4,7 +4,7 @@ services:
     build:
       context: ./kartta
       dockerfile: Dockerfile
-    entrypoint: ["/bin/bash", "/container/config/kartta/docker-launch.sh"]
+    entrypoint: ["/bin/sh", "/container/config/kartta/launch", "--watch"]
     volumes:
       - ./container/tools:/container/tools
       - ./container/secrets:/container/secrets
