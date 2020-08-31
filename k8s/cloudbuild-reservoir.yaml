@@ -14,7 +14,7 @@
 
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/reservoir:$SHORT_SHA', '-t', 'gcr.io/$PROJECT_ID/reservoir:latest', '.']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/reservoir:$SHORT_SHA', '.']
 images:
 - 'gcr.io/$PROJECT_ID/reservoir:$SHORT_SHA'
 timeout: 3600s
