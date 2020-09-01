@@ -68,6 +68,11 @@
   border-radius: 5px;
 }
 
+.kartta-footer-opaque {
+  margin: 10px;
+  width: 100%;
+}
+
 .kartta-footer-overlay {
   position: absolute;
   bottom: 0;
