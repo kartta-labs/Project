@@ -219,7 +219,7 @@ function reservoir_create_db_instance {
   gcloud beta sql users create "${RESERVOIR_DB_USER}" --instance="${RESERVOIR_DB_INSTANCE}" "--password=${RESERVOIR_DB_PASSWORD}"
 }
 
-reservoir_run_init_db_job {
+function reservoir_run_init_db_job {
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   set -x
   ${script_dir}/kapply k8s/reservoir-db-migration-job.yaml.in
@@ -228,6 +228,8 @@ reservoir_run_init_db_job {
   # Give the migration time to complete
   LOG_INFO "Waiting one minute for migrations to complete."
   sleep 60s
+
+  kubectl logs -l name=reservoir-db-migration
 
   LOG_INFO "To delete db init job run: kubectl delete jobs reservoir-db-migration"
 }

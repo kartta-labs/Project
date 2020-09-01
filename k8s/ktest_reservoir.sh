@@ -123,12 +123,16 @@ if ! reservoir_create_nas; then
 fi
 
 # Create the Persistent Volume and Persistent Volume Claim
-
 if ! reservoir_create_pvc; then
    LOG_INFO "Reservoir failed to create a PVC for the application to aquire the NAS."
    return 1
 fi
-   
+
+# Initialze the CloudSQL Database with extensions and Migrations.
+if ! reservoir_run_init_db_job; then
+  LOG_INFO "Failed to initialize cloudsql db."
+  return 1
+fi
 
 LOG_INFO "To clean up this test, run the following command: gcloud projects delete ${GCP_PROJECT_ID}"
 
