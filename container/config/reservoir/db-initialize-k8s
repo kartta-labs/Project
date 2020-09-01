@@ -1,0 +1,27 @@
+#!/bin/sh
+
+. /reservoir/container/secrets/secrets.env
+
+echo "Initializing Reservoir DB."
+
+
+CONNECTION_URL="postgresql://${RESERVOIR_DB_USER}:${RESERVOIR_DB_PASSWORD}@${RESERVOIR_DB_HOST}:${RESERVOIR_DB_PORT}/${RESERVOIR_DB_NAME}"
+
+until psql ${CONNECTION_URL} -c '\l'; do
+  >&2 echo "Waiting for postgres, sleeping."
+  sleep 10s
+done
+
+echo "Activating hstore extension"
+set -x
+psql "${CONNECTION_URL}" -c "create extension hstore;"
+set +x
+
+echo "Making/Running database migrations."
+
+python3 /reservoir/manage.py makemigrations
+python3 /reservoir/manage.py migrate
+
+echo "Migrations complete."
+
+exit 0

@@ -1,0 +1,65 @@
+# [Start Reservoir Deployment]
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reservoir
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: reservoir
+  template:
+    metadata:
+      name: reservoir
+      labels:
+        app: reservoir
+    spec:
+      volumes:
+      - name: reservoir-sa-key-vlm
+        secret:
+          secretName: reservoir-sa-key
+      - name: reservoir-model-vlm
+        persistentVolumeClaim:
+          claimName: reservoir-fileserver-claim
+          readOnly: false
+      containers:
+      # [Start main Reservoir application]
+      - name: reservoir
+        image: gcr.io/${GCP_PROJECT_ID}/reservoir:latest # make the version an argument
+        imagePullPolicy: Always # Always pull the image from the repo.
+        # securityContext:
+        #   runAsUser: 1001 # To mount reservoirfs as GID 1001
+        volumeMounts:
+        - mountPath: /reservoir/models
+          name: reservoir-model-vlm
+        command:
+          - "/reservoir/container/config/reservoir/runmodwsgi-entrypoint.sh"
+        ports:
+          - name: http
+            containerPort: 80
+          - name: https
+            containerPort: 443
+        env:
+        - name: RESERVOIR_DEBUG
+          value: "False"
+        - name: RESERVOIR_LOG_LEVEL
+          value: "DEBUG"
+      # [End main H3DMR appliction]
+      # [Start CloudSQL Proxy Sidecar]
+      - name: cloud-sql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:latest
+        volumeMounts:
+        - name: reservoir-sa-key-vlm
+          mountPath: /secrets/
+          readOnly: true
+        command:
+          - "/cloud_sql_proxy"
+          - "-instances=${RESERVOIR_DB_INSTANCE_CONNECTION_NAME}"
+          - "-credential_file=/secrets/service_account.json"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+       # [End CloudSQL Proxy Sidecar]
+# [End Reservoir Deployment]

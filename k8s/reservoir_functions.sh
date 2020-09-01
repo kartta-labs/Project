@@ -233,3 +233,17 @@ function reservoir_run_init_db_job {
 
   LOG_INFO "To delete db init job run: kubectl delete jobs reservoir-db-migration"
 }
+
+function reservoir_start_internal_service {
+  LOG_INFO "Starting Reservoir internal Load Balancer."
+
+  local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  set -x
+  ${script_dir}/kapply k8s/reservoir-db-migration-job.yaml.in
+  set +x
+
+  # Give the service a few seconds to start
+  sleep 30s
+
+  kubectl get services
+}
