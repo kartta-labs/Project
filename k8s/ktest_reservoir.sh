@@ -23,7 +23,7 @@ function generate_random_suffix {
 }
 
 function cleanup {
-  gclout project delete "${GCP_PROJECT_ID}"
+  gcloud project delete "${GCP_PROJECT_ID}"
 }
 
 export GCP_POSTFIX="$(generate_random_suffix 5)"
@@ -36,6 +36,7 @@ export GCP_REGION=us-"east4"
 export GCP_ZONE="us-east4-a"
 export CLUSTER_NAME="test-cluster"
 export CLOUDBUILD_LOGS_BUCKET="gs://cloudbuild-logs-$(generate_random_suffix)"
+SECRETS_FILE="./container/secrets/secrets.env"
 
 . ${current_script_dir}/functions.sh
 . ${current_script_dir}/reservoir_functions.sh
@@ -46,11 +47,15 @@ LOG_INFO "CLUSTER_NAME: ${CLUSTER_NAME}"
 LOG_INFO "CLOUDBUILD_LOGS_BUCKET= ${CLOUDBUILD_LOGS_BUCKET}"
 
 # Clean and remake secrets file
-if [ -f ./container/secrets/secrets.env ]
+if [ -f "${SECRETS_FILE}" ]
 then
   LOG_INFO "Deleting secrets file."
-  python3 ./makesecrets ~/waybak_secrets.env
+  rm "${SECRETS_FILE}"
+  python3 ./makesecrets ~/waybak-secrets.yml
 fi
+
+# Change the secrets file to match the test/current GCP_PROJECT_ID
+sed -i "/GCP_PROJECT_ID/ c export GCP_PROJECT_ID=${GCP_PROJECT_ID}" "${SECRETS_FILE}"
 
 gcloud projects create "${GCP_PROJECT_ID}" --organization="${WYBK_ORG_ID}"
 
@@ -75,12 +80,10 @@ set +x
 
 
 
-if [ ! $(gsutil ls "${CLOUDBUILD_LOGS_BUCKET}") ]
-then
+if [ ! $(gsutil ls "${CLOUDBUILD_LOGS_BUCKET}") ]; then
   LOG_INFO "Creating cloud build logs bucket: ${CLOUDBUILD_LOGS_BUCKET}"
   gsutil mb -p "${GCP_PROJECT_ID}" "${CLOUDBUILD_LOGS_BUCKET}"
-  if [ $? -ne 0 ]
-  then
+  if [ $? -ne 0 ]; then
     LOG_INFO "FAILED TO CREATE BUCKET."
     return 1
   fi
@@ -94,14 +97,12 @@ gcloud compute addresses create google-managed-services-default --global --purpo
 gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --network=default --ranges=google-managed-services-default
 
 # Create and configure the Postgres SQL Database w/ service accounts.
-if ! reservoir_create_db_instance;
-then
+if ! reservoir_create_db_instance; then
   LOG_INFO "Failed to create Reservoir DB instance."
   return 1
 fi
 
-if ! reservoir_create_cloudsql_service_account
-then
+if ! reservoir_create_cloudsql_service_account; then
   LOG_INFO "Failed to create Reservoir CloudSQL service account."
   return 1
 fi
@@ -109,35 +110,26 @@ fi
 clone_reservoir
 
 # Run cloud build
-if ! reservoir_cloud_build
-then
+if ! reservoir_cloud_build; then
   LOG_INFO "Reservoir Cloudbuild failed."
   return 1
 fi
 
 
 # Create the NAS        
-if ! reservoir_create_nas
-then
+if ! reservoir_create_nas; then
   LOG_INFO "Reservoir failed to create network mapped storage."
   return 1
 fi
 
 # Create the Persistent Volume and Persistent Volume Claim
 
-if ! reservoir_create_pvc
+if ! reservoir_create_pvc; then
    LOG_INFO "Reservoir failed to create a PVC for the application to aquire the NAS."
    return 1
 fi
    
 
-
 LOG_INFO "To clean up this test, run the following command: gcloud projects delete ${GCP_PROJECT_ID}"
 
 ) 2>&1 | tee "${LOGFILE}"
-
-
-
-
-
-

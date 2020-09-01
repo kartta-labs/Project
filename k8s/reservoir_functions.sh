@@ -78,6 +78,11 @@ function reservoir_cloud_build {
     LOG_INFO "Failed to submit gcloud build"
     return 1
   fi
+
+  if ! gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/reservoir:${RESERVOIR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/reservoir:latest"; then
+    LOG_INFO "Failed to label reservoir build ${RESERVOIR_SHORT_SHA} as latest."
+    return 1
+  fi
 }
 
 function get_reservoir_nfs_server_ip {
@@ -120,18 +125,6 @@ function reservoir_get_db_ip {
   fi
   
   LOG_INFO "RESERVOIR_DB_IP: ${RESERVOIR_DB_IP}"
-}
-
-function reservoir_activate_hstore_db {
-  if [ -z RESERVOIR_DB_USER ]
-  then
-    LOG_INFO "RESERVOIR_DB_USER is not set, please initialize the database first."
-    return 1
-  fi
-
-  gcloud sql connect "${RESERVOIR_DB_INSTANCE}" \
-    --user="${RESERVOIR_DB_USER}" #\
-    # --password="${RESERVOIR_DB_PASSWORD}"
 }
 
 function reservoir_create_cloudsql_service_account {
@@ -226,3 +219,15 @@ function reservoir_create_db_instance {
   gcloud beta sql users create "${RESERVOIR_DB_USER}" --instance="${RESERVOIR_DB_INSTANCE}" "--password=${RESERVOIR_DB_PASSWORD}"
 }
 
+reservoir_run_init_db_job {
+  local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  set -x
+  ${script_dir}/kapply k8s/reservoir-db-migration-job.yaml.in
+  set +x
+
+  # Give the migration time to complete
+  LOG_INFO "Waiting one minute for migrations to complete."
+  sleep 60s
+
+  LOG_INFO "To delete db init job run: kubectl delete jobs reservoir-db-migration"
+}
