@@ -128,12 +128,14 @@
       }
     };
 
-    img.addEventListener('mouseenter', (e) => {
+    const displayMenu = (e) => {
       menuPlacer.classList.remove("kartta-app-menu-hidden");
       document.addEventListener('mousemove', moveListener);
-    });
+    };
 
-    //appMenuPlaceholder.parentNode.insertBefore(appMenuWrapper, appMenuPlaceholder);
+    img.addEventListener('mouseenter', displayMenu);
+    img.addEventListener('click', displayMenu);
+
     appMenuPlaceholder.parentNode.insertBefore(elem, appMenuPlaceholder);
     appMenuPlaceholder.parentNode.removeChild(appMenuPlaceholder);
   }
