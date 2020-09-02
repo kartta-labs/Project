@@ -24,9 +24,9 @@ spec:
     spec:
       restartPolicy: Never
       volumes:
-        - name: reservoir-sa-vm
+        - name: reservoir-sa-key-vlm
           secret:
-            secretName: reservoir-sa
+            secretName: reservoir-sa-key
       containers:
         # [Start Reservoir DB Migration Job]
         - name: reservoir-db-migration
@@ -39,7 +39,7 @@ spec:
         - name: cloud-sql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:latest
           volumeMounts:
-          - name: reservoir-sa-vm
+          - name: reservoir-sa-key-vlm
             mountPath: /secrets/
             readOnly: true
           command:
