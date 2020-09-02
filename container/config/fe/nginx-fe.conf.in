@@ -86,6 +86,7 @@ __ENDIF__
         include /etc/nginx/shared-conf/oauth-proxy.conf;
         proxy_set_header Host ${FE_SERVER_NAME};
         proxy_pass http://warper:${MAPWARPER_PORT};
+        proxy_read_timeout 150;
         access_log /var/log/nginx/warper.access.log combined;
     }
 

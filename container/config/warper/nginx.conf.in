@@ -19,6 +19,7 @@ server {
     location ${MAPWARPER_SITE_PREFIX}/ {
         proxy_pass http://localhost:${MAPWARPER_INTERNAL_PORT};
         proxy_redirect off;
+        proxy_read_timeout 150;  # should really be for rectify requests only
         proxy_set_header X-Forwarded-Host ${D}host;
         proxy_set_header Host "${MAPWARPER_SERVER_NAME}";
         proxy_set_header X-Forwarded-For ${D}proxy_add_x_forwarded_for;
