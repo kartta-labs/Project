@@ -2,11 +2,15 @@
 
 echo "foo"
 
+. /reservoir/container/secrets/secrets.env
+
 function log {
     echo "[runmodwsgi entrypoint $(date)]: $1"
 }
 
 log "Changing permissions on fs mount."
+
+log "RESERVOIR_DEBUG: ${RESERVOIR_DEBUG}"
 
 chown -R :www-data /reservoir/models
 chmod -R a+wr /reservoir/models

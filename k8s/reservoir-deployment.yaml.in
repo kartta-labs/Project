@@ -42,7 +42,7 @@ spec:
             containerPort: 443
         env:
         - name: RESERVOIR_DEBUG
-          value: "False"
+          value: "${RESERVOIR_DEBUG}"
         - name: RESERVOIR_LOG_LEVEL
           value: "DEBUG"
       # [End main H3DMR appliction]

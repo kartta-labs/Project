@@ -134,6 +134,20 @@ if ! reservoir_run_init_db_job; then
   return 1
 fi
 
+# Push an external loadbalancer for debugging
+if ! reservoir_start_external_service; then
+  LOG_INFO "Failed to start externally available service."
+  return 1
+else
+  LOG_INFO "Service available at external ip: $(kubectl get services)"
+fi
+
+# Pushing debug deployment
+if ! reservoir_deploy_debug; then
+  LOG_INFO "Failed to push deployment."
+  return 1
+fi
+
 LOG_INFO "To clean up this test, run the following command: gcloud projects delete ${GCP_PROJECT_ID}"
 
 ) 2>&1 | tee "${LOGFILE}"
