@@ -13,6 +13,8 @@
 
 site_host: "${EDITOR_SERVER_NAME}"
 
+site_name: "${SITE_NAME}"
+
 site_prefix: "${EDITOR_SITE_PREFIX}"
 sign_out_path: "/oauth2/sign_out"
 
