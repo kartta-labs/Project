@@ -128,12 +128,14 @@
       }
     };
 
-    img.addEventListener('mouseenter', (e) => {
+    const displayMenu = (e) => {
       menuPlacer.classList.remove("kartta-app-menu-hidden");
       document.addEventListener('mousemove', moveListener);
-    });
+    };
 
-    //appMenuPlaceholder.parentNode.insertBefore(appMenuWrapper, appMenuPlaceholder);
+    img.addEventListener('mouseenter', displayMenu);
+    img.addEventListener('click', displayMenu);
+
     appMenuPlaceholder.parentNode.insertBefore(elem, appMenuPlaceholder);
     appMenuPlaceholder.parentNode.removeChild(appMenuPlaceholder);
   }
@@ -202,9 +204,41 @@
     cookieBarPlaceholder.parentNode.removeChild(cookieBarPlaceholder);
   }
 
+  function createFooterItem(url, text) {
+    const div = createElement("div", {
+      "class": "kartta-footer-item"
+    });
+    const a = createElement("a", {
+      "href": url
+    }, text);
+    div.appendChild(a);
+    return div;
+  }
+
+  function createFooterSeparator() {
+    return createElement("div", {
+      "class": "kartta-footer-separator"
+    }, "|");
+  }
+
+  function installFooter() {
+    const footerPlaceholder = document.getElementById("kartta-footer-content");
+    footerPlaceholder.parentNode.insertBefore(createFooterItem("/faq", "FAQ"), footerPlaceholder);
+    footerPlaceholder.parentNode.insertBefore(createFooterSeparator(), footerPlaceholder);
+    footerPlaceholder.parentNode.insertBefore(createFooterItem("https://policies.google.com/privacy", "DATA PRIVACY"), footerPlaceholder);
+    footerPlaceholder.parentNode.insertBefore(createFooterSeparator(), footerPlaceholder);
+    footerPlaceholder.parentNode.insertBefore(createFooterItem("https://policies.google.com/terms", "TERMS OF SERVICE"), footerPlaceholder);
+    footerPlaceholder.parentNode.insertBefore(createFooterSeparator(), footerPlaceholder);
+    footerPlaceholder.parentNode.insertBefore(createFooterItem("/help", "HELP"), footerPlaceholder);
+    footerPlaceholder.parentNode.insertBefore(createFooterSeparator(), footerPlaceholder);
+    footerPlaceholder.parentNode.insertBefore(createFooterItem("/about", "ABOUT"), footerPlaceholder);
+    footerPlaceholder.parentNode.removeChild(footerPlaceholder);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     installAppMenu();
     installCookieBar();
+    installFooter();
   });
 
 })();
