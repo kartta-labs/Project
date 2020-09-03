@@ -27,13 +27,24 @@ export RESERVOIR_DB_NAME="reservoir"
 export RESERVOIR_SA="reservoir-sa"
 export RESERVOIR_DB_SECRETS="reservoir-db"
 
-LOG_INFO() {
-    echo "[kbootstrap reservoir INFO $(date +"%Y-%m-%d %T %Z")] $1"
+function LOG {
+  local MESSAGE=${1}
+  local LEVEL=${2:-"INFO"}
+  
+  echo "[reservoir_functions ${LEVEL} ${LINENO} $(date +"%Y-%m-%d %T %Z")] ${MESSAGE}"
+}
+
+function LOG_INFO {
+  LOG ${1} "INFO"
+}
+
+function LOG_ERROR {
+  LOG ${1} "ERROR"
 }
 
 if [ -z "${secrets_env_file}" ] 
 then
-  LOG_INFO "secrets_env_file unset, setting to ./container/secrets/secrets.env"
+  LOG "secrets_env_file unset, setting to ./container/secrets/secrets.env"
   secrets_env_file="./container/secrets/secrets.env"
 
   if [ \! -f "${secrets_env_file}" ] ; then
@@ -46,10 +57,10 @@ fi
 function clone_reservoir {
   if [ ! -d "./reservoir" ]
   then
-    LOG_INFO "Cloning Reservoir repository."
+    LOG "Cloning Reservoir repository."
     git clone ${RESERVOIR_REPO} reservoir
   else
-    LOG_INFO "Pulling latest Reservoir repository."
+    LOG "Pulling latest Reservoir repository."
     git -C ./reservoir pull origin master
   fi
 }
@@ -67,7 +78,7 @@ function reservoir_cloud_build {
   cp -R ./container ./reservoir
   
 
-  LOG_INFO "CLOUDBUILD_LOGS_BUCKET: ${CLOUDBUILD_LOGS_BUCKET}"
+  LOG "CLOUDBUILD_LOGS_BUCKET: ${CLOUDBUILD_LOGS_BUCKET}"
 
   set -x
   gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}"  --config ${reservoir_script_dir}/cloudbuild-reservoir.yaml ./reservoir
@@ -75,20 +86,20 @@ function reservoir_cloud_build {
 
   if [ $? -ne 0 ]
   then
-    LOG_INFO "Failed to submit gcloud build"
+    LOG "Failed to submit gcloud build"
     return 1
   fi
 
   if ! gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/reservoir:${RESERVOIR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/reservoir:latest"; then
-    LOG_INFO "Failed to label reservoir build ${RESERVOIR_SHORT_SHA} as latest."
+    LOG "Failed to label reservoir build ${RESERVOIR_SHORT_SHA} as latest."
     return 1
   fi
 }
 
 function get_reservoir_nfs_server_ip {
   RESERVOIR_NFS_SERVER=$(gcloud filestore instances describe reservoir-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])")
-  LOG_INFO "RESERVOIR_NFS_SERVER IP: ${RESERVOIR_NFS_SERVER}"
-  LOG_INFO "Adding RESERVOIR_NFS_SERVER to secrets file."
+  LOG "RESERVOIR_NFS_SERVER IP: ${RESERVOIR_NFS_SERVER}"
+  LOG "Adding RESERVOIR_NFS_SERVER to secrets file."
   
   set -x
   add_secret ${secrets_env_file} RESERVOIR_NFS_SERVER ${RESERVOIR_NFS_SERVER}
@@ -106,8 +117,16 @@ function reservoir_create_pvc {
 
   if [ -z "${RESERVOIR_NFS_SERVER}" ]
   then
-    LOG_INFO "RESERVOIR_NFS_SERVER not set."
-    return 1
+    LOG "RESERVOIR_NFS_SERVER not set."
+    # The NAS creation may have been done in a separate process and the IP variable not available in
+    # the current environment. Attempt to fetch it from the cluster.
+    RESERVOIR_NFS_SERVER=$(gcloud filestore instances describe reservoir-fs --zone=us-east4-a --format="value(networks[0].ipAddresses[0])")
+    if [ $? -ne 0 ]; then
+       LOG_ERROR "Failed to fetch RESERVOIR_NFS_SERVER IP."
+       return 1
+    else
+      LOG_INFO "Found RESERVOIR_NFS_SERVER: ${RESERVOIR_NFS_SERVER}"
+    fi
   fi
   
   # create PersistentVolume (nfs mount) called reservoir-fileserver
@@ -120,11 +139,11 @@ function reservoir_get_db_ip {
   
   if [ -z "${RESERVOIR_DB_IP}" ]
   then
-    LOG_INFO "Failed to retrieve reservoir db host ip."
+    LOG "Failed to retrieve reservoir db host ip."
     return 1
   fi
   
-  LOG_INFO "RESERVOIR_DB_IP: ${RESERVOIR_DB_IP}"
+  LOG "RESERVOIR_DB_IP: ${RESERVOIR_DB_IP}"
 }
 
 function reservoir_create_cloudsql_service_account {
@@ -135,25 +154,25 @@ function reservoir_create_cloudsql_service_account {
 
   if [ -z "${GCP_PROJECT_ID}" ]
   then
-    LOG_INFO "Please specify GCP_PROJECTID env variable."
+    LOG "Please specify GCP_PROJECTID env variable."
   fi
     
   if [ ! -d "${TMP_DIR}" ]
   then
-    LOG_INFO "Creating ${TMP_DIR}"
+    LOG "Creating ${TMP_DIR}"
     mkdir "${TMP_DIR}"
   fi
 
   if ! gcloud iam service-accounts describe ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED}
   then
-    LOG_INFO "Creating service account: ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED}"
+    LOG "Creating service account: ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED}"
     if ! gcloud iam service-accounts create "${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT}" \
       --description "Service Account for Reservoir CloudSQL Proxy."; then
-      LOG_INFO "Failed to create service account: ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT}"
+      LOG "Failed to create service account: ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT}"
       return 1
     fi
   else
-    LOG_INFO "${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED} already exists."
+    LOG "${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED} already exists."
   fi
 
   gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
@@ -162,24 +181,24 @@ function reservoir_create_cloudsql_service_account {
 
   if [ $? -ne 0 ]
   then
-    LOG_INFO "Failed to bind ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT} to cloudsql.admin role."
+    LOG "Failed to bind ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT} to cloudsql.admin role."
     return 1
   fi
   
-  LOG_INFO "Creating new access key for reservoir service account: ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT}"
+  LOG "Creating new access key for reservoir service account: ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT}"
   
   if ! gcloud iam service-accounts keys create "${TMP_DIR}/key.json" \
     --iam-account ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT}@${GCP_PROJECT_ID}.iam.gserviceaccount.com;
   then
-    LOG_INFO "Failed to create ${RESERVOIR_CLOUD_SERVICE_ACCOUNT_NAME} service account key."
+    LOG "Failed to create ${RESERVOIR_CLOUD_SERVICE_ACCOUNT_NAME} service account key."
     return 1
   else
-    LOG_INFO "Key: $(cat ${TMP_DIR}/key.json)"
+    LOG "Key: $(cat ${TMP_DIR}/key.json)"
   fi
 
   if kubectl get secrets "${RESERVOIR_CLOUDSQL_KEY_SECRET}"
   then
-    LOG_INFO "Deleteing old ${RESERVOIR_CLOUDSQL_KEY_SECRET} key."
+    LOG "Deleteing old ${RESERVOIR_CLOUDSQL_KEY_SECRET} key."
     kubectl delete secrets "${RESERVOIR_CLOUDSQL_KEY_SECRET}"
   fi
   
@@ -187,26 +206,7 @@ function reservoir_create_cloudsql_service_account {
     --from-file=service_account.json="${TMP_DIR}/key.json"  
 }
 
-function reservoir_create_db_instance {
-
-  gcloud sql databases list --instance="${RESERVOIR_DB_INSTANCE}"
-
-  if [ $? -ne 0 ]
-  then
-    LOG_INFO "Creating new reservoir database instance: ${RESERVOIR_DB_INSTANCE}"
-      gcloud beta sql instances create "${RESERVOIR_DB_INSTANCE}" --cpu=2 --memory=7680MiB \
-    --database-version=POSTGRES_12 --zone=${GCP_ZONE} --storage-type=SSD \
-    --network=default --database-flags temp_file_limit=2147483647 --no-assign-ip
-  fi
-
-  if [ $? -ne 0 ]
-  then
-    LOG_INFO "Failed to create Reservoir sql database."
-    return 1
-  fi
-  
-  # reservoir_get_db_ip
-
+function reservoir_create_db_credentials {
   add_secret ${secrets_env_file} RESERVOIR_DB_USER "reservoir"
   add_secret ${secrets_env_file} RESERVOIR_DB_PASSWORD "$(generate_password)"
   add_secret ${secrets_env_file} RESERVOIR_DB_HOST "127.0.0.1" # Use proxy side car.
@@ -214,6 +214,31 @@ function reservoir_create_db_instance {
   add_secret ${secrets_env_file} RESERVOIR_DB_NAME "${RESERVOIR_DB_NAME}"
   add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE "${RESERVOIR_DB_INSTANCE}"
   add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE_CONNECTION_NAME "${GCP_PROJECT_ID}:${GCP_REGION}:${RESERVOIR_DB_INSTANCE}=tcp:${RESERVOIR_DB_PORT}"
+}
+
+function reservoir_create_db_instance {
+
+  if [ -z "${RESERVOIR_DB_PASSWORD}" ]; then
+     LOG "RESERVOIR_DB_PASSWORD is not set, creating DB credentials."
+     reservoir_create_db_credentials
+  fi
+  gcloud sql databases list --instance="${RESERVOIR_DB_INSTANCE}"
+
+  if [ $? -ne 0 ]
+  then
+    LOG "Creating new reservoir database instance: ${RESERVOIR_DB_INSTANCE}"
+      gcloud beta sql instances create "${RESERVOIR_DB_INSTANCE}" --cpu=2 --memory=7680MiB \
+    --database-version=POSTGRES_12 --zone=${GCP_ZONE} --storage-type=SSD \
+    --network=default --database-flags temp_file_limit=2147483647 --no-assign-ip
+  fi
+
+  if [ $? -ne 0 ]
+  then
+    LOG "Failed to create Reservoir sql database."
+    return 1
+  fi
+  
+  # reservoir_get_db_ip
   gcloud beta sql databases create "${RESERVOIR_DB_NAME}" --instance="${RESERVOIR_DB_INSTANCE}"
   
   gcloud beta sql users create "${RESERVOIR_DB_USER}" --instance="${RESERVOIR_DB_INSTANCE}" "--password=${RESERVOIR_DB_PASSWORD}"
@@ -226,20 +251,34 @@ function reservoir_run_init_db_job {
   set +x
 
   # Give the migration time to complete
-  LOG_INFO "Waiting one minute for migrations to complete."
+  LOG "Waiting one minute for migrations to complete."
   sleep 60s
 
   kubectl logs -l name=reservoir-db-migration
 
-  LOG_INFO "To delete db init job run: kubectl delete jobs reservoir-db-migration"
+  LOG "To delete db init job run: kubectl delete jobs reservoir-db-migration"
 }
 
 function reservoir_start_internal_service {
-  LOG_INFO "Starting Reservoir internal Load Balancer."
+  LOG "Starting Reservoir internal Load Balancer."
 
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   set -x
-  ${script_dir}/kapply k8s/reservoir-db-migration-job.yaml.in
+  ${script_dir}/kapply k8s/reservoir-service.yaml.in
+  set +x
+
+  # Give the service a few seconds to start
+  sleep 30s
+
+  kubectl get services
+}
+
+function reservoir_start_external_service {
+  LOG_INFO "Starting Reservoir external Load Balancer."
+
+  local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  set -x
+  ${script_dir}/kapply k8s/reservoir-service-external.yaml.in
   set +x
 
   # Give the service a few seconds to start
@@ -260,4 +299,99 @@ function reservoir_deploy_prod {
   
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   ${script_dir}/kapply k8s/reservoir-deployment.yaml.in
+}
+
+function reservoir_create_resources_parallel {
+  # Wait for this to complete prior to kicking of parallel cloud build.
+  clone_reservoir
+
+  # Wait on this so that create_db and cloud_build have access to the same
+  # credentials through the secrets file.
+  if ! reservoir_create_db_credentials; then
+    LOG_ERROR "Failed to create database credentials."
+  else
+    LOG_ERROR "Created database credentials."
+  fi
+  
+  reservoir_cloud_build &
+  RESERVOIR_CLOUD_BUILD_PID=$!
+
+  reservoir_create_db_instance &
+  RESERVOIR_CREATE_DB_INSTANCE_PID=$!
+
+  reservoir_create_cloudsql_service_account &
+  RESERVOIR_CREATE_CLOUDSQL_SERVICE_ACCOUNT_PID=$!
+
+  reservoir_create_nas &
+  RESERVOIR_CREATE_NAS_PID=$!
+
+  RESERVOIR_JOB_PIDS="${RESERVOIR_CLOUD_BUILD_PID} ${RESERVOIR_CREATE_DB_INSTANCE_PID} ${RESERVOIR_CREATE_CLOUDSQL_SERVICE_ACCOUNT_PID} ${RESERVOIR_CREATE_NAS_PID}"
+  
+  LOG_INFO "RESERVOIR_JOB_PIDS: ${RESERVOIR_JOB_PIDS}"
+
+  function killalljobs {
+    LOG_ERROR "KILLING Reservoir resource jobs: ${RESERVOIR_JOB_PIDS}"
+    for job_pid in ${RESERVOIR_JOB_PIDS}; do
+      set -x 
+      LOG_ERROR "KILLING: ${job_pid}"
+      echo "echo KILLING: ${job_pid}"
+      kill -9 ${job_pid}
+      set +x
+    done
+  }
+
+  # do we need to wait on NAS before PVC creation?
+  LOG_INFO "Waiting on NAS creation."
+  if ! wait $RESERVOIR_CREATE_NAS_PID; then
+    LOG_ERROR "Failed to create NAS."
+    killalljobs
+  fi
+
+
+  LOG_INFO "Launching Reservoir PVC creation."
+  reservoir_create_pvc &
+  RESERVOIR_CREATE_PVC_PID=$!
+  RESERVOIR_JOB_PIDS="${RESERVOIR_JOB_PIDS} $RESERVOIR_CREATE_PVC_PID"
+
+  if ! wait $RESERVOIR_CREATE_PVC_PID; then
+    LOG_ERROR "Failed to create Reservoir PVC."
+    killalljobs
+    return 1
+  else
+    LOG_INFO "Finished creating Reservoir PVC."
+  fi
+
+  LOG_INFO "Waiting for DB creation."
+  if ! wait $RESERVOIR_CREATE_DB_INSTANCE_PID; then
+    LOG_ERROR "Failed to create Reservoir DB Instance."
+    killalljobs
+    return 1
+  else
+    LOG_INFO "Created Reservoir DB Instance."
+  fi
+
+  LOG_INFO "Waiting for Reservoir Cloud Build."
+  if ! wait $RESERVOIR_CLOUD_BUILD_PID; then
+    LOG_ERROR "Reservoir CloudBuild Failed."
+    killalljobs
+    return 1
+  else
+    LOG_INFO "Finished Reservoir CloudBuild."
+  fi
+
+  if ! wait $RESERVOIR_CREATE_CLOUDSQL_SERVICE_ACCOUNT_PID; then
+    LOG_ERROR "Failed to create Reservoir CloudSQL service account."
+    killalljobs
+    return 1
+  fi
+  
+  if ! reservoir_run_init_db_job; then
+    LOG_ERROR "Failed to Initialize Reservoir cloudsql DB."
+    killalljobs
+    return 1
+  fi
+
+  
+
+  LOG_INFO "Sucessfully created Reservoir resources."
 }
