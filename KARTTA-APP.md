@@ -8,8 +8,8 @@ working with a current app that uses them.
 
 ## Include CSS/JS Files
 
-The app should include the files `/assets/kartta-app.css` and `/assets/kartta-app.js` on every page; so put
-something like
+Apps should include the files `/assets/kartta-app.css` and `/assets/kartta-app.js` on every page, i.e.
+include something like
 
 ```
   <link rel="stylesheet" href="/assets/kartta-app.css">
@@ -52,7 +52,7 @@ bar should appear at the top of the screen, and the rest of the page content sho
 appear below it.
 
 Note that when the user clicks the "Got It" button in the cookie bar, the page will
-be reloaded using the current page address after the cookie is set; afte this reload
+be reloaded using the current page address after the cookie is set; aftef this reload
 the page will render without the cookie bar.
 
 ## Install Logo and App Menu
@@ -83,7 +83,7 @@ current app to the other apps to confirm the position.
 Kartta apps all have a common footer with links to informational pages such as
 the site-wide FAQ, policy, about, and help pages.  There are two ways to use the footer:
 
-## Flow Footer Display
+### Flow Footer Display
 
 To include a footer in the page after all the other content
 on the page, include the following as the last thing in the `<body>`:
@@ -104,7 +104,7 @@ the page.  If there is a lot of content, the user might have to scroll down to
 see the footer, and if there isn't much content, the footer might not be at the
 bottom of the screen -- it'll come right after the other content in the page.
 
-## Fixed Transparent Footer Display
+### Fixed Transparent Footer Display
 
 To include a footer at a fixed position at the bottom of the screen, in a
 semi-transparent display that is visible above whatever other page content is
@@ -122,7 +122,7 @@ present, include the following as the last thing in the `<body>`:
 
 This kind of display is appropriate for full-screen apps such as a map.
 
-## Custom Footer Display
+### Custom Footer Display
 
 The actual element that corresponds to the content of the footer in the above
 two html snippets is `<div id="kartta-footer-content"></div>`; it is this
