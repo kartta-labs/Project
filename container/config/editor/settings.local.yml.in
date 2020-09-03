@@ -18,6 +18,8 @@ site_name: "${SITE_NAME}"
 site_prefix: "${EDITOR_SITE_PREFIX}"
 sign_out_path: "/oauth2/sign_out"
 
+terms_declined_url: "${EDITOR_TERMS_DECLINED_URL}"
+
 shared_assets_path: "/assets"
 
 other_user_db_update_url: "${EDITOR_OTHER_USER_DB_UPDATE_URL}"
