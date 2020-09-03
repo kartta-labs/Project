@@ -391,7 +391,5 @@ function reservoir_create_resources_parallel {
     return 1
   fi
 
-  
-
   LOG_INFO "Sucessfully created Reservoir resources."
 }
