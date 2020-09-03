@@ -24,13 +24,23 @@
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 . ${script_dir}/reservoir_functions.sh
-
-
-LOG_INFO "script_dir: ${script_dir}"
+. ${script_dir}/functions.sh
 
 # Generate Reservoir Images via Cloud Build
 
-reservoir_cloud_build
+reservoir_cloud_build &
+RESERVOIR_CLOUD_BUILD_PID=$?
+
+reservoir_create_nas &
+RESERVOIR_CREATE_NAS=$?
+
+reservoir_
+
+# Create Reservoir NAS
+if ! reservoir_create_nas; then
+  LOG_INFO "Reservoir failed to create network mapped storage."
+  return 1
+fi
 
 
 

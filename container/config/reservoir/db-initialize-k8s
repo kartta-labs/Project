@@ -4,8 +4,9 @@
 
 echo "Initializing Reservoir DB."
 
-
+set -x
 CONNECTION_URL="postgresql://${RESERVOIR_DB_USER}:${RESERVOIR_DB_PASSWORD}@${RESERVOIR_DB_HOST}:${RESERVOIR_DB_PORT}/${RESERVOIR_DB_NAME}"
+set +x
 
 until psql ${CONNECTION_URL} -c '\l'; do
   >&2 echo "Waiting for postgres, sleeping."
