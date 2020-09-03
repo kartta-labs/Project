@@ -14,19 +14,19 @@
 
 (()=>{
   const menuItems = [
-      { "menuText": "home",
+      { "menuText": "homə",
         "url": "/",
         "logo": "/assets/site-logo-long.png"
       },
-      { "menuText": "editor",
+      { "menuText": "əditor",
         "url": "/e/",
         "logo": "/assets/editor-logo.png"
       },
-      { "menuText": "warper",
+      { "menuText": "warpər",
         "url": "/w/",
         "logo": "/assets/warper-logo.png"
       },
-      { "menuText": "reservoir",
+      { "menuText": "rəsərvoir",
         "url": "/r/",
         "logo": "/assets/reservoir-logo.png"
       }

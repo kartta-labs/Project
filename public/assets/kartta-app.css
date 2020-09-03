@@ -16,7 +16,7 @@
     padding: 6px 6px 6px 6px;
     border-radius: 4px;
     text-transform: uppercase;
-    background: #1d1dd0;
+    background: #ed220d;
     color: white !important;
 }
 
@@ -52,16 +52,20 @@
   font-size: 16pt;
   padding-left: 10px;
   padding-right: 10px;
-  color: #1d1dd0;
+  color: #ed220d;
   border-bottom: 1px solid black;
   background: white;
+  font-family: 'Zilla Slab', serif;
 }
 
 .kartta-menu-item:hover {
   color: white;
-  background: #1d1dd0;
+  background: #ed220d;
 }
 
+.kartta-app-menu-dropdown a {
+  text-decoration: none;
+}
 
 .kartta-app-menu-dropdown {
   border: 1px solid black;
@@ -102,3 +106,5 @@
   margin-left: 5px;
   margin-right: 5px;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600&display=swap');
