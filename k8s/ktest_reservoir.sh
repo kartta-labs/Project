@@ -14,36 +14,30 @@
 
 current_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-function generate_random_suffix {
-  # Generates a random 16-character password that can be used as a bucket name suffix
-  local LENGTH="${1:-15}"
-  echo "b`(date ; dd if=/dev/urandom count=2 bs=1024) 2>/dev/null | md5sum | head -c ${LENGTH}`"
-}
+. ${current_script_dir}/functions.sh
+. ${current_script_dir}/reservoir_functions.sh
 
 function cleanup {
   gcloud project delete "${GCP_PROJECT_ID}"
 }
 
-export GCP_POSTFIX="$(generate_random_suffix 5)"
-export WYBK_ORG_ID=344127236084
-export WYBK_BILLING_ID="01930B-854143-2F2F86"
-LOGFILE="/tmp/ktest_reservoir_$(date +%m%d%y_%H%M%S)_${GCP_POSTFIX}.log"
-touch ${LOGFILE}
-LOG_INFO "LOGFILE: ${LOGFILE}"
-export GCP_PROJECT_ID="waybak-test-$(generate_random_suffix 5)"
-export GCP_REGION=us-"east4"
-export GCP_ZONE="us-east4-a"
-export CLUSTER_NAME="test-cluster"
-export CLOUDBUILD_LOGS_BUCKET="gs://cloudbuild-logs-$(generate_random_suffix)"
-SECRETS_FILE="./container/secrets/secrets.env"
-
-. ${current_script_dir}/functions.sh
-. ${current_script_dir}/reservoir_functions.sh
-
 # Overwrite the LOG_INFO function in this file.
 LOG_INFO() {
     echo "[ktest_reservoir INFO $(date +"%Y-%m-%d %T %Z")] $1"
 }
+
+# This will update the SECRETS_FILE
+if ! create_waybak_test_project; then
+  LOG_INFO "Failed to create waybak test project GCP_PROJECT_ID: ${GCP_PROJECT_ID}"
+  return 1
+fi
+
+LOG_INFO "From ktest: SECRETS_FILE: ${SECRETS_FILE}"
+LOGFILE="/tmp/ktest_reservoir_$(date +%m%d%y_%H%M%S)_${GCP_PROJECT_SUFFIX}.log"
+touch ${LOGFILE}
+LOG_INFO "LOGFILE: ${LOGFILE}"
+export CLUSTER_NAME="test-cluster"
+export CLOUDBUILD_LOGS_BUCKET="gs://cloudbuild-logs-${GCP_PROJECT_SUFFIX}"
 
 (
 LOG_INFO "GCP_PROJECT_ID: ${GCP_PROJECT_ID}"
@@ -51,32 +45,13 @@ LOG_INFO "CLUSTER_NAME: ${CLUSTER_NAME}"
 LOG_INFO "CLOUDBUILD_LOGS_BUCKET= ${CLOUDBUILD_LOGS_BUCKET}"
 
 # Clean and remake secrets file
-if [ -f "${SECRETS_FILE}" ]
-then
-  LOG_INFO "Deleting secrets file."
-  rm "${SECRETS_FILE}"
-  python3 ./makesecrets ~/waybak-secrets.yml
-fi
+# if [ -f "${SECRETS_FILE}" ]
+# then
+#   LOG_INFO "Deleting secrets file."
+#   rm "${SECRETS_FILE}"
+#   python3 ./makesecrets ~/waybak-secrets.yml
+# fi
 
-# 1. Create a new project with random postfix
-LOG_INFO "Creating new project ${GCP_PROJECT_ID}"
-gcloud projects create "${GCP_PROJECT_ID}" --organization="${WYBK_ORG_ID}"
-
-# Change the secrets file to match the test/current GCP_PROJECT_ID
-sed -i "/GCP_PROJECT_ID/ c export GCP_PROJECT_ID=${GCP_PROJECT_ID}" "${SECRETS_FILE}"
-
-if [ $? -ne 0 ]
-then
-  echo "Failed to create project ${GPC_PROJECT_ID}"
-  return 1
-fi
-
-gcloud config set project ${GCP_PROJECT_ID}
-gcloud config set compute/zone ${GCP_ZONE}
-
-# Need billing activated to enable apis
-LOG_INFO "Enable gcloud billing"
-gcloud beta billing projects link "${GCP_PROJECT_ID}" --billing-account "${WYBK_BILLING_ID}"
 
 LOG_INFO "Enable gcloud services for Reservoir."
 set -x

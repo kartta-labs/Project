@@ -24,11 +24,6 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Load common functions
 . ${script_dir}/functions.sh
 
-#if [ "${ENABLE_RESERVOIR}" != "" ]; then
-# Load Reservoir functions
-# . ${script_dir}/reservoir_functions.sh
-#fi
-
 # make sure the secrets file is present
 secrets_env_file="./container/secrets/secrets.env"
 
@@ -43,7 +38,7 @@ fi
 
 . ${secrets_env_file}
 
-# k8s-specific secrets settings which override the defaults:
+k8s-specific secrets settings which override the defaults:
 add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
 add_secret ${secrets_env_file} MAPWARPER_GOOGLE_STORAGE_ENABLED "true"
 add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
@@ -52,7 +47,7 @@ add_secret ${secrets_env_file} FORCE_HTTPS "true"
 # For now disable these in k8s since k8s deployment for them isn't written yet.  Note this is needed
 # to prevent nginx from requiring these.  These lines should be deleted once these apps are configured
 # for k8s:
-add_secret ${secrets_env_file} ENABLE_RESERVOIR ""
+add_secret ${secrets_env_file} ENABLE_RESERVOIR "true"
 
 set -x
 
@@ -120,14 +115,6 @@ set -x
 # create PersistentVolume (nfs mount) called warper-fileserver
 ${script_dir}/kapply k8s/warper-filestore-storage.yaml.in
 
-#if [ "${ENABLE_RESERVOIR}" != "" ]; then
-###
-### Reservoir managed NAS file storage
-###
-# reservoir_create_nas
-# reservoir_create_pvc
-#fi
-
 ###
 ### create services
 ###
@@ -136,7 +123,6 @@ ${script_dir}/kcreate k8s/editor-service.yaml.in
 ${script_dir}/kcreate k8s/fe-service.yaml.in
 ${script_dir}/kcreate k8s/warper-service.yaml.in
 ${script_dir}/kcreate k8s/oauth-proxy-service.yaml.in
-${script_dir}/kcreate k8s/h3dmr-service.yaml.in # TODO: Replace this with Reservoir config.
 if [ "${ENABLE_KARTTA}" != "" ]; then
   ${script_dir}/kcreate k8s/kartta-service.yaml.in
 fi
@@ -148,9 +134,7 @@ fi
 git clone ${EDITOR_REPO} editor-website
 git clone ${MAPWARPER_REPO} warper
 git clone ${CGIMAP_REPO} openstreetmap-cgimap
-#if [ "${ENABLE_RESERVOIR}" != "" ]; then
-git clone ${RESERVOIR_REPO} reservoir
-#fi
+
 if [ "${ENABLE_KARTTA}" != "" ]; then
   git clone ${KARTTA_REPO} kartta
   (cd kartta ; git clone ${ANTIQUE_REPO} antique)
@@ -186,10 +170,15 @@ export MAPWARPER_SHORT_SHA=`(cd warper ; git rev-parse --short HEAD)`
 gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/warper" "--substitutions=SHORT_SHA=${MAPWARPER_SHORT_SHA}"  --config k8s/cloudbuild-warper.yaml .
 gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/warper:latest"
 
-#if [ "${ENABLE_RESERVOIR}" != "" ]; then
-# Reservoir
-# reservoir_cloud_build
-#fi
+if [ "${ENABLE_RESERVOIR}" != "" ]; then
+  . ${script_dir}/reservoir_functions.sh
+  LOG_INFO "Bootstrapping reservoir."
+  if ! reservoir_kbootstrap; then
+    LOG_ERROR "Failed to bootstrap reservoir."
+  fi
+else
+  LOG_INFO "Skipping Reservoir bootstrap."
+fi
 
 # kartta
 if [ "${ENABLE_KARTTA}" != "" ]; then
@@ -222,7 +211,7 @@ set -x
 gcloud beta sql users set-password postgres --instance=editor-sql "--password=${EDITOR_SQL_POSTGRES_PASSWORD}"
 gcloud beta sql users create karttaweb --instance=editor-sql "--password=${EDITOR_SQL_KARTTAWEB_PASSWORD}"
 
-# perform database migration; note this uses the gcr.io editor image built above to run a job
+perform database migration; note this uses the gcr.io editor image built above to run a job
 ${script_dir}/resecret
 ${script_dir}/kcreate k8s/editor-db-migration-job.yaml.in
 set +x
@@ -230,11 +219,6 @@ wait_for_k8s_job editor-db-migration
 set -x
 # Don't delete this job for now, to make it possible to view its logs.
 #kubectl delete job editor-db-migration
-
-
-
-
-
 
 ###
 ### warper database
