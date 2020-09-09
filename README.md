@@ -206,19 +206,27 @@ the applications, use the docker process described above.
 4. Edit `./container/secrets/secrets.env` and set all the required values at the top of the file;
    see the comments in the file for details.
 
-5. Run `./k8s/kbootstrap.sh`.  It may take up to an hour to run.  When it finishes, it will
+5. Warper has an optional feature that causes it to run OCR on uploaded maps in an attempt to initially
+   place them in an approximate location.  This feature is disabled by default.  If you want to
+   enable this feature:
+     * Go to https://pantheon.corp.google.com/apis/credentials and create a new API key
+     * Edit `./container/secrets/secrets.env` to insert the value of that API key for
+       the variable MAPWARPER_GOOGLE_MAPS_KEY.  Also change the value of MAPWARPER_ENABLE_OCR_JOB
+       to "true".
+
+6. Run `./k8s/kbootstrap.sh`.  It may take up to an hour to run.  When it finishes, it will
    print out a message with the IP address of the running server (this is the IP of the load
    balancer).
 
-6. Create a DNS entry which which associates the generated IP adddress with the SERVER_NAME
+7. Create a DNS entry which which associates the generated IP adddress with the SERVER_NAME
    you chose above.
 
-7. The vector tile server deployment is handled by a separate script.  If you also want to
+8. The vector tile server deployment is handled by a separate script.  If you also want to
    create a vector tile server deployment, run `./k8s/kvector-bootstrap.sh`.  Do this _after_
    running `./k8s/kbootstrap.sh`; `./k8s/kvector-bootstrap.sh` will not work correctly if
    `./k8s/kbootstrap.sh` has not been run first.
 
-8. Note that both `./k8s/kbootstrap.sh` and `./k8s/kvector-bootstrap.sh` edit the secrets file
+9. Note that both `./k8s/kbootstrap.sh` and `./k8s/kvector-bootstrap.sh` edit the secrets file
    (container/secrets/secrets.env) to add information such as IP addresses and names of
    resources they create, or values for passwords they generate.  You should guard that secrets
    file carefully -- it will be needed when making any changes to the deployment.

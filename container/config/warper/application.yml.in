@@ -40,7 +40,7 @@ defaults: &defaults
   google_storage_bucket: ""
   public_shared_dir: ""  #used when saving to a shared directory (e.g. shared_uploads_dir: "shared" for RAILS_ROOT/public/shared/ which can be mounted as a volume via k8s ) 
   debug_k8s: false
-  google_maps_key: ""
+  google_maps_key: "${MAPWARPER_GOOGLE_MAPS_KEY}"
   enable_google_satellite: false
   sendgrid_api_key: ""
   nypl_repo_token: ""
@@ -54,8 +54,8 @@ defaults: &defaults
   smtp_port:
   smtp_username:
   smtp_password:
-  enable_ocr_job: "false"  #set to "true" to enable the OCR and geocoding job upon map creation
-  ocr_bucket: "" # name of the bucket to store images for OCR processing, should be globablly unique
+  enable_ocr_job: "${MAPWARPER_ENABLE_OCR_JOB}"  #set to "true" to enable the OCR and geocoding job upon map creation
+  ocr_bucket: "${MAPWARPER_OCR_BUCKET}" # name of the bucket to store images for OCR processing, should be globablly unique
   force_ssl: "false"  #set to "false" to disable ssl or "true" 
   
 
