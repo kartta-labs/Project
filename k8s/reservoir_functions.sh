@@ -345,6 +345,7 @@ function reservoir_deploy_debug {
 function reservoir_deploy_prod {
   add_secret ${secrets_env_file} RESERVOIR_DEBUG "False"
   add_secret ${secrets_env_file} RESERVOIR_SITE_PREFIX "r"
+  add_secret ${secrets_env_file} RESERVOIR_STATIC_URL "/r/static/"
 
   sed -i "/RESERVOIR_PORT/ c export RESERVOIR_PORT=80" "${SECRETS_FILE}"
   
