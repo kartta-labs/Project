@@ -12,6 +12,10 @@ log "Changing permissions on fs mount."
 
 log "RESERVOIR_DEBUG: ${RESERVOIR_DEBUG}"
 
+log "RESERVOIR_SITE_PREFIX: ${RESERVOIR_SITE_PREFIX}"
+
+log "RESERVOIR_STATIC_URL: ${RESERVOIR_STATIC_URL}"
+
 chown -R :www-data /reservoir/models
 chmod -R a+wr /reservoir/models
 
