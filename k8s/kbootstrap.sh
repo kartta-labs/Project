@@ -61,7 +61,7 @@ set -x
 ###
 gcloud config set project ${GCP_PROJECT_ID}
 gcloud config set compute/zone ${GCP_ZONE}
-gcloud services enable cloudbuild.googleapis.com container.googleapis.com containerregistry.googleapis.com file.googleapis.com redis.googleapis.com servicenetworking.googleapis.com sql-component.googleapis.com sqladmin.googleapis.com storage-api.googleapis.com storage-component.googleapis.com vision.googleapis.com
+gcloud services enable cloudbuild.googleapis.com container.googleapis.com containerregistry.googleapis.com file.googleapis.com redis.googleapis.com servicenetworking.googleapis.com sql-component.googleapis.com sqladmin.googleapis.com storage-api.googleapis.com storage-component.googleapis.com vision.googleapis.com maps-backend.googleapis.com geolocation.googleapis.com geocoding-backend.googleapis.com
 export KLUSTER="${GCP_PROJECT_ID}-k1"
 gcloud container clusters create ${KLUSTER} --zone ${GCP_ZONE} --release-channel stable --enable-ip-alias --machine-type "n1-standard-4" --num-nodes=3
 gcloud compute addresses create google-managed-services-default --global --purpose=VPC_PEERING --prefix-length=20 --network=default
@@ -88,13 +88,16 @@ set +x
 BUCKET_SUFFIX=$(generate_bucket_suffix)
 add_secret ${secrets_env_file} MAPWARPER_WARPER_BUCKET "warper-${BUCKET_SUFFIX}"
 add_secret ${secrets_env_file} MAPWARPER_TILES_BUCKET "tiles-${BUCKET_SUFFIX}"
+add_secret ${secrets_env_file} MAPWARPER_OCR_BUCKET "ocr-${BUCKET_SUFFIX}"
 set -x
 gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_WARPER_BUCKET}
 gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_TILES_BUCKET}
+gsutil mb -p ${GCP_PROJECT_ID} gs://${MAPWARPER_OCR_BUCKET}
 
 #  give service account "warper-sa" access to those buckets
 gsutil iam ch serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_WARPER_BUCKET}
 gsutil iam ch serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_TILES_BUCKET}
+gsutil iam ch serviceAccount:warper-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${MAPWARPER_OCR_BUCKET}
 
 # create tiles-backend-bucket
 gcloud compute backend-buckets create tiles-backend-bucket --enable-cdn --gcs-bucket-name=${MAPWARPER_TILES_BUCKET}
