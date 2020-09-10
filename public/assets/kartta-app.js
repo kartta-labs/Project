@@ -223,6 +223,9 @@
 
   function installFooter() {
     const footerPlaceholder = document.getElementById("kartta-footer-content");
+    if (!footerPlaceholder) {
+      return;
+    }
     footerPlaceholder.parentNode.insertBefore(createFooterItem("/faq", "FAQ"), footerPlaceholder);
     footerPlaceholder.parentNode.insertBefore(createFooterSeparator(), footerPlaceholder);
     footerPlaceholder.parentNode.insertBefore(createFooterItem("https://policies.google.com/privacy", "DATA PRIVACY"), footerPlaceholder);

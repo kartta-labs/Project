@@ -42,17 +42,65 @@ function LOG_ERROR {
   LOG ${1} "ERROR"
 }
 
-if [ -z "${secrets_env_file}" ] 
-then
-  LOG "secrets_env_file unset, setting to ./container/secrets/secrets.env"
-  secrets_env_file="./container/secrets/secrets.env"
+function generate_random_suffix {
+  # Generates a random 16-character password that can be used as a bucket name suffix
+  local LENGTH="${1:-15}"
+  echo "b`(date ; dd if=/dev/urandom count=2 bs=1024) 2>/dev/null | md5sum | head -c ${LENGTH}`"
+}
 
-  if [ \! -f "${secrets_env_file}" ] ; then
-    echo "Before running kbootstrap.sh, you should run ./makesecrets to generate a secrets file,"
-    echo "and edit it to set the required values for a k8s deployment."
-    exit -1
+function create_waybak_test_project {
+  export WYBK_ORG_ID=344127236084
+  export WYBK_BILLING_ID="01930B-854143-2F2F86"
+  export GCP_PROJECT_SUFFIX="$(generate_random_suffix 8)"
+  export GCP_PROJECT_ID="waybak-test-${GCP_PROJECT_SUFFIX}"
+  
+  LOG_INFO "Creating gcloud project with GCP_PROJECT_ID: ${GCP_PROJECT_ID}"
+  gcloud projects create "${GCP_PROJECT_ID}" --organization="${WYBK_ORG_ID}"
+
+  if [ $? -ne 0 ]
+  then
+    echo "Failed to create project ${GPC_PROJECT_ID}"
+    return 1
   fi
-fi
+
+  if [ -z "${SECRETS_FILE}" ] 
+  then
+    LOG "secrets_env_file unset, setting to ./container/secrets/secrets.env"
+    export SECRETS_FILE="./container/secrets/secrets.env"
+    export secrets_env_file="${SECRETS_FILE}"
+
+    if [ \! -f "${SECRETS_FILE}" ] ; then
+      echo "Before running kbootstrap.sh, you should run ./makesecrets to generate a secrets file,"
+      echo "and edit it to set the required values for a k8s deployment."
+      exit -1
+    fi
+  fi
+
+  LOG_INFO "Re-writing GCP_PROJECT_ID in secrets file to ${GCP_PROJECT_ID}"
+
+  # Change the secrets file to match the test/current GCP_PROJECT_ID
+  sed -i "/GCP_PROJECT_ID/ c export GCP_PROJECT_ID=${GCP_PROJECT_ID}" "${SECRETS_FILE}"
+
+  LOG_INFO "$(cat ${SECRETS_FILE} | grep GCP_PROJECT_ID)"
+  
+  gcloud config set project ${GCP_PROJECT_ID}
+
+  if [ -z "${GCP_REGION}" ] ; then
+    LOG_INFO "SETTING GCP_REGION TO us-east4"
+    export GCP_REGION="us-east4"
+  fi
+
+  if [ -z "${GCP_ZONE}" ] ; then
+    LOG_INFO "Setting GCP_ZONE to us-east4-a"
+    export GCP_ZONE="us-east4-a"
+  fi
+  
+  gcloud config set compute/zone ${GCP_ZONE}
+  
+  # Need billing activated to enable apis
+  LOG_INFO "Enable gcloud billing"
+  gcloud beta billing projects link "${GCP_PROJECT_ID}" --billing-account "${WYBK_BILLING_ID}"
+}
 
 function clone_reservoir {
   if [ ! -d "./reservoir" ]
@@ -289,13 +337,17 @@ function reservoir_start_external_service {
 
 function reservoir_deploy_debug {
   add_secret ${secrets_env_file} RESERVOIR_DEBUG "True"
-
+  add_secret ${secrets_env_file} RESERVOIR_PORT "8080"
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   ${script_dir}/kapply k8s/reservoir-deployment.yaml.in
 }
 
 function reservoir_deploy_prod {
-  add_secrete ${secrets_env_file} RESERVOIR_DEBUG "False"
+  add_secret ${secrets_env_file} RESERVOIR_DEBUG "False"
+  add_secret ${secrets_env_file} RESERVOIR_SITE_PREFIX "r"
+  add_secret ${secrets_env_file} RESERVOIR_STATIC_URL "/r/static/"
+
+  sed -i "/RESERVOIR_PORT/ c export RESERVOIR_PORT=80" "${SECRETS_FILE}"
   
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   ${script_dir}/kapply k8s/reservoir-deployment.yaml.in
@@ -392,4 +444,28 @@ function reservoir_create_resources_parallel {
   fi
 
   LOG_INFO "Sucessfully created Reservoir resources."
+}
+
+function reservoir_kbootstrap {
+  LOG_INFO "Creating Reservoir image, DB, NAS, PVC, service accounts and initializing DB."
+
+  if ! reservoir_create_resources_parallel; then
+    LOG_INFO "Failed to create Reservoir resources."
+    return 1
+  fi
+
+  LOG_INFO "Finished allocating Reservoir resources."
+
+  LOG_INFO "Deploying production reservoir application."
+  if ! reservoir_deploy_prod; then
+    LOG_INFO "Failed to deploy reservoir production application."
+    return 1
+  fi
+
+  LOG_INFO "Deploying reservoir internal LB service."
+  if ! reservoir_start_internal_service; then
+    LOG_ERROR "Failed to start reservoir internal service."
+    return 1
+  fi
+
 }

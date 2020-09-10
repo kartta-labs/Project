@@ -139,4 +139,3 @@ function wait_for_k8s_deployment_app_ready {
   exit -1
 }
 
-
