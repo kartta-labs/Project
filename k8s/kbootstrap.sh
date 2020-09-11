@@ -47,7 +47,7 @@ add_secret ${secrets_env_file} FORCE_HTTPS "true"
 # For now disable these in k8s since k8s deployment for them isn't written yet.  Note this is needed
 # to prevent nginx from requiring these.  These lines should be deleted once these apps are configured
 # for k8s:
-add_secret ${secrets_env_file} ENABLE_RESERVOIR "true"
+add_secret ${secrets_env_file} ENABLE_NOTER ""
 
 set -x
 
