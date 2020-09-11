@@ -91,7 +91,7 @@ services:
       - cgimap
       - warper
 
-  db:
+  noter-backend-db:
     image: postgres:12
     environment:
       POSTGRES_DB: noter-backend
@@ -104,8 +104,8 @@ services:
   noter-backend:
     environment:
       DJANGO_SETTINGS_MODULE: noter_backend.dev_settings
-      DATABASE_URL: 'postgres://noter-backend:noter-backend@db:5432'
-      NOTER_DB_HOST: 'db'
+      DATABASE_URL: 'postgres://noter-backend:noter-backend@noter-backend-db:5432'
+      NOTER_DB_HOST: 'noter-backend-db'
       NOTER_GS_PROJECT_ID: ''
       # If NOTER_GS_MEDIA_BUCKET_NAME is empty, local disk will be used.
       # You may lose the data if the disk is not persistent!
@@ -123,7 +123,7 @@ services:
       - ./noter-backend:/noter-backend
     entrypoint: /noter-backend/docker-compose-entrypoint.sh
     depends_on:
-      - db
+      - noter-backend-db
 
   noter-frontend:
     build:

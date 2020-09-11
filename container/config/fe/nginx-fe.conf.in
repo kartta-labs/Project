@@ -139,36 +139,39 @@ __ENDIF__
 
 __IF${ENABLE_FE_ID}THEN__
     location /id {
-             return 302 ${D}scheme://${D}http_host/id/;
+     return 302 ${D}scheme://${D}http_host/id/;
     }
     location /id/ {
-             include /etc/nginx/shared-conf/oauth-proxy.conf;
-             rewrite /id(/.*) /${D}1 break;
-             proxy_pass http://id:8080;
-             proxy_redirect off;
-             proxy_set_header Host ${D}host;
-             access_log /var/log/nginx/id.access.log combined;
+       include /etc/nginx/shared-conf/oauth-proxy.conf;
+       rewrite /id(/.*) /${D}1 break;
+       proxy_pass http://id:8080;
+       proxy_redirect off;
+       proxy_set_header Host ${D}host;
+       access_log /var/log/nginx/id.access.log combined;
     }            
 __ENDIF__
 
+__IF${ENABLE_NOTER}THEN__
     location /nf {
-             return 302 $scheme://${D}http_host/nf/;
+      return 302 ${D}scheme://${D}http_host/nf/;
     }
     location /nf/ {
-             include /etc/nginx/shared-conf/oauth-proxy.conf;
-             rewrite /nf/(.*) /$1 break;
-             proxy_pass http://noter-frontend:3000;
-             access_log /var/log/nginx/nf.access.log combined;
-             error_log /var/log/nginx/nf.debug.log debug;
+      include /etc/nginx/shared-conf/oauth-proxy.conf;
+      rewrite /nf/(.*) /${D}1 break;
+      proxy_pass http://noter-frontend:3000;
+      access_log /var/log/nginx/nf.access.log combined;
+      error_log /var/log/nginx/nf.debug.log debug;
     }
     location /nb {
-             return 302 $scheme://${D}http_host/nb/;
+      return 302 ${D}scheme://${D}http_host/nb/;
     }
     location /nb/ {
-             include /etc/nginx/shared-conf/oauth-proxy.conf;
-             rewrite /nb/(.*) /$1 break;
-             proxy_pass http://noter-backend:3001;
-             access_log /var/log/nginx/nb.access.log combined;
-             error_log /var/log/nginx/nb.debug.log debug;
+      include /etc/nginx/shared-conf/oauth-proxy.conf;
+      rewrite /nb/(.*) /${D}1 break;
+      proxy_pass http://noter-backend:3001;
+      access_log /var/log/nginx/nb.access.log combined;
+      error_log /var/log/nginx/nb.debug.log debug;
     }
+__ENDIF__
+
 }

@@ -88,4 +88,12 @@ if [ "${ENABLE_RESERVOIR}" != "" ] ; then
   sudo ./dcwrapper -f ./reservoir/docker-compose.yml build reservoir
 fi
 
+if [ "${ENABLE_NOTER}" != "" ] ; then
+  git clone ${NOTER_BACKEND_REPO} noter-backend
+  git clone ${NOTER_FRONTEND_REPO} noter-frontend
+  sudo ./dcwrapper build noter-backend
+  sudo ./dcwrapper build noter-frontend
+fi
+
+
 ) 2>&1 | tee bootstrap.log
