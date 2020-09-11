@@ -38,7 +38,7 @@ fi
 
 . ${secrets_env_file}
 
-k8s-specific secrets settings which override the defaults:
+# k8s-specific secrets settings which override the defaults:
 add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
 add_secret ${secrets_env_file} MAPWARPER_GOOGLE_STORAGE_ENABLED "true"
 add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
@@ -211,7 +211,7 @@ set -x
 gcloud beta sql users set-password postgres --instance=editor-sql "--password=${EDITOR_SQL_POSTGRES_PASSWORD}"
 gcloud beta sql users create karttaweb --instance=editor-sql "--password=${EDITOR_SQL_KARTTAWEB_PASSWORD}"
 
-perform database migration; note this uses the gcr.io editor image built above to run a job
+# perform database migration; note this uses the gcr.io editor image built above to run a job
 ${script_dir}/resecret
 ${script_dir}/kcreate k8s/editor-db-migration-job.yaml.in
 set +x
