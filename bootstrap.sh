@@ -70,6 +70,8 @@ if [ "${ENABLE_FE_ID}" != "" ] ; then
   sudo ./dcwrapper -f docker-compose-id.yml build id
 fi
 
+git clone ${RENDERER_REPO} renderer
+
 sudo ./dcwrapper build fe
 
 if [ "${ENABLE_RESERVOIR}" != "" ] ; then
