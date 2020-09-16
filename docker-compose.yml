@@ -112,11 +112,9 @@ services:
       PROTECTED_MEDIA_URL:
       NOTER_GS_MEDIA_BUCKET_NAME: ''
       GOOGLE_APPLICATION_CREDENTIALS: '/etc/google_cloud.json'
-
     build:
       context: .
       dockerfile: Dockerfile-noter-backend
-    image: noter-backend
     ports:
       - "3001:3001"
     volumes:
@@ -129,7 +127,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-noter-frontend
-    image: noter-frontend
     ports:
       - "8081:3000"
     volumes:
