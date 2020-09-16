@@ -12,6 +12,10 @@ __ENDIF__
       root /srv/public;
     }
 
+    location /3d {
+      alias /srv/renderer;
+    }
+
     # for warper uploads
     client_max_body_size ${FE_CLIENT_MAX_BODY_SIZE};
 
