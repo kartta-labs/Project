@@ -8,6 +8,8 @@ RUN apt-get update -qq \
 RUN mkdir -p /srv
 
 COPY ./public /srv/public
+COPY ./renderer /srv/renderer
+RUN rm -rf /srv/renderer/.git
 
 RUN chmod -R a+rx /srv
 
