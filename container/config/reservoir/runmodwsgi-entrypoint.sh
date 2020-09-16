@@ -16,6 +16,8 @@ log "RESERVOIR_SITE_PREFIX: ${RESERVOIR_SITE_PREFIX}"
 
 log "RESERVOIR_STATIC_URL: ${RESERVOIR_STATIC_URL}"
 
+log "RESERVOIR_MODEL_DIR: ${RESERVOIR_MODEL_DIR}"
+
 chown -R :www-data /reservoir/models
 chmod -R a+wr /reservoir/models
 

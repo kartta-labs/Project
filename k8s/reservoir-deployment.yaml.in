@@ -49,6 +49,8 @@ spec:
           value: "${RESERVOIR_SITE_PREFIX}"
         - name: RESERVOIR_STATIC_URL
           value: "${RESERVOIR_STATIC_URL}"
+        - name: RESERVOIR_MODEL_IDR
+          value: "${RESERVOIR_MODEL_DIR}"
       # [End main H3DMR appliction]
       # [Start CloudSQL Proxy Sidecar]
       - name: cloud-sql-proxy
