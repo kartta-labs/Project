@@ -26,5 +26,11 @@ log "Checking permissions for /reservoir/models: $(ls -laF /reservoir/models)"
 log "Starting runmodwsgi process."
 
 cd /reservoir
+
+log "Running migrations."
+python manage.py makemigrations
+python manage.py migrate
+log "Migrations complete."
+
 python manage.py runmodwsgi --port 80 --user=www-data --group=www-data \
        --server-root=/etc/mod_wsgi-express-80 --error-log-format "%M" --log-to-terminal
