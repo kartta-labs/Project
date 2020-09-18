@@ -8,7 +8,7 @@ GKE (Google Kubernetes Engine).
 This project does not contain the code for the individual applications -- it
 just contains the overall scripts and configuration files for launching and
 managing the applications together.  The code for each application is stored in
-its own repositiory in http://github.com/kartta-labs.  The scripts in this
+its own repository in http://github.com/kartta-labs.  The scripts in this
 project will take care of cloning the applications repos for you.
 
 
@@ -40,7 +40,7 @@ Do these things just once to get set up.
    ```
    ./makesecrets values.yml
    ```
-   This will cause `makesecrets` to substitute values found in `values.yml` for the the corresponding
+   This will cause `makesecrets` to substitute values found in `values.yml` for the corresponding
    variable when generating `./container/secrets/secrets.env`.  Note: you can't use `values.yml` to
    add additional variables -- the substitution only happens for variables already present in
    `example-secrets.env`.
@@ -218,7 +218,7 @@ the applications, use the docker process described above.
    print out a message with the IP address of the running server (this is the IP of the load
    balancer).
 
-7. Create a DNS entry which which associates the generated IP adddress with the SERVER_NAME
+7. Create a DNS entry which associates the generated IP address with the SERVER_NAME
    you chose above.
 
 8. The vector tile server deployment is handled by a separate script.  If you also want to
