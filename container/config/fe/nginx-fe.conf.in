@@ -128,6 +128,12 @@ __IF${ENABLE_KARTTA}THEN__
       access_log /var/log/nginx/kartta.access.log combined;
     }
 
+    location = /attributions {
+      proxy_pass http://kartta:${KARTTA_PORT}/attributions.html;
+      proxy_redirect off;
+      access_log /var/log/nginx/kartta.access.log combined;
+    }
+
     location / {
       proxy_pass http://kartta:${KARTTA_PORT};
       proxy_redirect off;
