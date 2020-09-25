@@ -1,0 +1,4 @@
+const Config = {
+  'endpoint': '${RENDERER_BBOX_DATA_URL}'
+};
+export {Config};

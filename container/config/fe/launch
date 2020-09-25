@@ -7,6 +7,6 @@ cp /container/config/fe/oauth-proxy.conf /etc/nginx/shared-conf/oauth-proxy.conf
 /bin/sh /container/tools/subst \
   /container/secrets/secrets.env \
   /container/config/fe/nginx-fe.conf.in /etc/nginx/sites-enabled/fe \
-  /srv/renderer/settings.example.js /srv/renderer/settings.js
+  /container/config/fe/renderer-config.js.in /srv/renderer/config.js
 
 exec nginx -g "daemon off;"
