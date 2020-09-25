@@ -1,0 +1,3 @@
+/bin/sh /container/tools/subst \
+  /container/secrets/secrets.env \
+  /container/config/noter-frontend/env.in          /app/.env

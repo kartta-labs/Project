@@ -1,0 +1,5 @@
+/bin/sh /container/tools/subst \
+  /container/secrets/secrets.env \
+  /container/config/noter-backend/lookup_endpoints.yml.in          /etc/lookup_endpoints.yaml
+
+

@@ -47,9 +47,5 @@ RUN mkdir /etc/nginx/sites-enabled
 COPY ./noter-backend/etc/nginx.conf /etc/nginx/nginx.conf
 COPY ./noter-backend/etc/noter.conf.template /etc/nginx/sites-available/noter.conf.template
 
-# For local docker dev instances, use an empty google_cloud.json; real deployments
-# will need to replace this on launch:
-RUN touch /etc/google_cloud.json
-
 # COPY etc/supervisord.conf /etc/supervisord.conf
 # COPY etc/uwsgi.ini /etc/uwsgi/wsgi.ini
