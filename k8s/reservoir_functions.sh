@@ -125,7 +125,15 @@ function reservoir_cloud_build {
   
   cp -R ./container ./reservoir
   
-
+  if [ -z $CLOUDBUILD_LOGS_BUCKET ]; then
+    CLOUDBUILD_LOGS_BUCKET="gs://cloudbuild-logs-$(generate_bucket_suffix)"
+    LOG "Generating new cloud build logs bucket: ${CLOUDBUILD_LOGS_BUCKET}"
+    if ! gsutil mb "${CLOUDBUILD_LOGS_BUCKET}"; then
+       LOG_ERROR "Failed to create logs storage bucket."
+       return 1
+    fi    
+  fi
+       
   LOG "CLOUDBUILD_LOGS_BUCKET: ${CLOUDBUILD_LOGS_BUCKET}"
 
   set -x
