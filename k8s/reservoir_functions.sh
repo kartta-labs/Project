@@ -97,6 +97,24 @@ function create_waybak_test_project {
   # Need billing activated to enable apis
   LOG_INFO "Enable gcloud billing"
   gcloud beta billing projects link "${GCP_PROJECT_ID}" --billing-account "${WYBK_BILLING_ID}"
+
+  LOG_INFO "Enabling cloud services."
+  
+  gcloud services enable cloudbuild.googleapis.com container.googleapis.com containerregistry.googleapis.com file.googleapis.com redis.googleapis.com servicenetworking.googleapis.com sql-component.googleapis.com sqladmin.googleapis.com storage-api.googleapis.com storage-component.googleapis.com
+  
+  LOG_INFO "Finished enabling cloud services."
+
+  KLUSTER="${GCP_PROJECT_ID}-k1"
+  if ! gcloud container clusters describe "${KLUSTER}"; then
+    LOG_INFO "Creating cluster ${KLUSTER}"
+    
+    gcloud container clusters create ${KLUSTER} --zone ${GCP_ZONE} --release-channel stable --enable-ip-alias --machine-type "n1-standard-4" --num-nodes=3
+    
+    gcloud compute addresses create google-managed-services-default --global --purpose=VPC_PEERING --prefix-length=20 --network=default
+    gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --network=default --ranges=google-managed-services-default
+
+    LOG_INFO "Finished creating cluster."
+  fi
 }
 
 function clone_reservoir {
