@@ -1,10 +1,14 @@
 . /container/secrets/secrets.env
-. /app/.env
-expected_url='http://'${SERVER_NAME=}
-if [ "${expected_url}" != "${REACT_APP_BACKEND_URL}" ]; then
-  /bin/sh /container/config/noter-frontend/create-configs
-  . /app/.env
-  npm run build
-  serve -s /app/build -l 3000
-fi
-serve -s /app/build -l 3000
+
+export REACT_APP_BACKEND_URL='http://${SERVER_NAME}'
+
+#. /app/.env
+#expected_url='http://'${SERVER_NAME=}
+#if [ "${expected_url}" != "${REACT_APP_BACKEND_URL}" ]; then
+#  /bin/sh /container/config/noter-frontend/create-configs
+#  . /app/.env
+#  npm run build
+#  serve -s /app/build -l ${NOTER_FRONTEND_PORT}
+#fi
+
+serve -s /app/build -l ${NOTER_FRONTEND_PORT}

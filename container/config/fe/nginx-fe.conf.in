@@ -168,7 +168,7 @@ __IF${ENABLE_NOTER}THEN__
     location /nf/ {
       include /etc/nginx/shared-conf/oauth-proxy.conf;
       rewrite /nf/(.*) /${D}1 break;
-      proxy_pass http://noter-frontend:3000;
+      proxy_pass http://noter-frontend:${NOTER_FRONTEND_PORT};
       access_log /var/log/nginx/nf.access.log combined;
       error_log /var/log/nginx/nf.debug.log debug;
     }
@@ -178,7 +178,7 @@ __IF${ENABLE_NOTER}THEN__
     location /nb/ {
       include /etc/nginx/shared-conf/oauth-proxy.conf;
       rewrite /nb/(.*) /${D}1 break;
-      proxy_pass http://noter-backend:3001;
+      proxy_pass http://noter-backend:${NOTER_BACKEND_PORT};
       access_log /var/log/nginx/nb.access.log combined;
       error_log /var/log/nginx/nb.debug.log debug;
     }
