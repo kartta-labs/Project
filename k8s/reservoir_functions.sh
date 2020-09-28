@@ -28,18 +28,15 @@ export RESERVOIR_SA="reservoir-sa"
 export RESERVOIR_DB_SECRETS="reservoir-db"
 
 function LOG {
-  local MESSAGE=${1}
-  local LEVEL=${2:-"INFO"}
-  
-  echo "[reservoir_functions ${LEVEL} ${LINENO} $(date +"%Y-%m-%d %T %Z")] ${MESSAGE}"
+  echo "[reservoir_functions ${LEVEL} ${LINENO} $(date +"%Y-%m-%d %T %Z")] $@"
 }
 
 function LOG_INFO {
-  LOG ${1} "INFO"
+  LEVEL="INFO" LOG $@
 }
 
 function LOG_ERROR {
-  LOG ${1} "ERROR"
+  LEVEL="ERROR" LOG $@
 }
 
 function generate_random_suffix {
