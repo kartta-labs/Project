@@ -19,6 +19,7 @@
 
 reservoir_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+. ./container/secrets/secrets.env
 . ${reservoir_script_dir}/functions.sh
 
 # Name of cloud-sql instance.
