@@ -1,5 +1,9 @@
+#!/bin/bash
+
 /bin/sh /container/config/noter-backend/create-configs
+
 . /container/secrets/secrets.env
+
 export DJANGO_SETTINGS_MODULE="noter_backend.dev_settings"
 export DATABASE_URL="postgres://${NOTER_BACKEND_DB_USER}:${NOTER_BACKEND_POSTGRES_PASSWORD}@${NOTER_BACKEND_DB_HOST}:5432"
 export NOTER_DB_NAME="noterdb"
@@ -9,4 +13,12 @@ export NOTER_DB_HOST=${NOTER_BACKEND_DB_HOST}
 export GOOGLE_APPLICATION_CREDENTIALS="/container/secrets/noter-backend-bucket-credential.json"
 export NOTER_LOOKUP_ENDPOINTS_YAML="/etc/lookup_endpoints.yaml"
 
-/noter-backend/docker-compose-entrypoint.sh
+if [[ -z "${NOTER_GS_MEDIA_BUCKET_NAME}" ]]; then
+  export PROTECTED_MEDIA_URL="alias /media/;"
+else
+  export PROTECTED_MEDIA_URL="proxy_pass https://${NOTER_GS_MEDIA_BUCKET_NAME}.storage.googleapis.com/;"
+fi
+envsubst "\$PROTECTED_MEDIA_URL" < /etc/nginx/sites-available/noter.conf.template > /etc/nginx/sites-available/noter.conf
+ln -s /etc/nginx/sites-available/noter.conf /etc/nginx/sites-enabled/noter.conf
+
+service nginx start && python3 /noter-backend/noter_backend/manage.py runserver 127.0.0.1:3000

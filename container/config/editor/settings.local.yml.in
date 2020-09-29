@@ -41,3 +41,5 @@ id_key: "xxxxxxxx"
 
 # nominatim_url: "????"
 oauth_key: "xxxxxxxx"
+
+analytics_tag: "${GOOGLE_ANALYTICS_TAG}"

@@ -44,11 +44,6 @@ add_secret ${secrets_env_file} MAPWARPER_GOOGLE_STORAGE_ENABLED "true"
 add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
 add_secret ${secrets_env_file} FORCE_HTTPS "true"
 
-# For now disable these in k8s since k8s deployment for them isn't written yet.  Note this is needed
-# to prevent nginx from requiring these.  These lines should be deleted once these apps are configured
-# for k8s:
-add_secret ${secrets_env_file} ENABLE_NOTER ""
-
 set -x
 
 ###
@@ -80,7 +75,7 @@ rm -f /tmp/warper-service-account.json
 ### warper storage buckets
 ###
 set +x
-BUCKET_SUFFIX=$(generate_bucket_suffix)
+add_secret ${secrets_env_file} BUCKET_SUFFIX $(generate_bucket_suffix)
 add_secret ${secrets_env_file} MAPWARPER_WARPER_BUCKET "warper-${BUCKET_SUFFIX}"
 add_secret ${secrets_env_file} MAPWARPER_TILES_BUCKET "tiles-${BUCKET_SUFFIX}"
 add_secret ${secrets_env_file} MAPWARPER_OCR_BUCKET "ocr-${BUCKET_SUFFIX}"
@@ -284,6 +279,13 @@ ${script_dir}/kcreate k8s/oauth-proxy-deployment.yaml.in
 ${script_dir}/kcreate k8s/warper-deployment.yaml.in
 if [ "${ENABLE_KARTTA}" != "" ]; then
   ${script_dir}/kcreate k8s/kartta-deployment.yaml.in
+fi
+
+###
+### noter (all noter stuff, including deploymnt, is handled by kbootstrap-noter.sh)
+###
+if [ "${ENABLE_NOTER}" != "" ]; then
+  . ${script_dir}/kbootstrap-noter.sh
 fi
 
 ###
