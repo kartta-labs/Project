@@ -127,6 +127,11 @@ function clone_reservoir {
     LOG "Pulling latest Reservoir repository."
     git -C ./reservoir pull origin master
   fi
+  
+  if $?; then
+    LOG_ERROR "Failed to clone/pull reservoir."
+    return 1
+  fi
 }
 
 function reservoir_cloud_build {
@@ -384,7 +389,10 @@ function reservoir_deploy_prod {
 
 function reservoir_create_resources_parallel {
   # Wait for this to complete prior to kicking of parallel cloud build.
-  clone_reservoir
+  if ! clone_reservoir; then
+    LOG_ERROR "Failed to clone reservoir, fix before creating resources."
+    return 1
+  fi
 
   # Wait on this so that create_db and cloud_build have access to the same
   # credentials through the secrets file.
