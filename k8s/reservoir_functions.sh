@@ -28,7 +28,7 @@ export RESERVOIR_SA="reservoir-sa"
 export RESERVOIR_DB_SECRETS="reservoir-db"
 
 function LOG {
-  echo "[reservoir_functions ${LEVEL} ${LINENO} $(date +"%Y-%m-%d %T %Z")] $@"
+  echo "[reservoir_functions:${LEVEL} $(date +"%Y-%m-%d %T %Z")] $@"
 }
 
 function LOG_INFO {
@@ -129,6 +129,10 @@ function clone_reservoir {
 }
 
 function reservoir_cloud_build {
+  if [ ! -d "./reservoir" ]; then
+    clone_reservoir
+  fi
+  
   export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
 
   # copy the container config and secrets to the ./reservoir subdirectory to be packaged with the source
