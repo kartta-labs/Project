@@ -1,5 +1,9 @@
+#!/bin/bash
+
 /bin/sh /container/config/noter-backend/create-configs
+
 . /container/secrets/secrets.env
+
 export DJANGO_SETTINGS_MODULE="noter_backend.dev_settings"
 export DATABASE_URL="postgres://${NOTER_BACKEND_DB_USER}:${NOTER_BACKEND_POSTGRES_PASSWORD}@${NOTER_BACKEND_DB_HOST}:5432"
 export NOTER_DB_NAME="noterdb"
@@ -9,4 +13,14 @@ export NOTER_DB_HOST=${NOTER_BACKEND_DB_HOST}
 export GOOGLE_APPLICATION_CREDENTIALS="/container/secrets/noter-backend-bucket-credential.json"
 export NOTER_LOOKUP_ENDPOINTS_YAML="/etc/lookup_endpoints.yaml"
 
-/noter-backend/docker-compose-entrypoint.sh
+until psql $DATABASE_URL -c '\l'; do
+    >&2 echo "Posgres is unavailable - sleeping."
+    sleep 1
+done
+
+psql $DATABASE_URL -c "create database ${NOTER_DB_NAME}"
+
+python3 /noter-backend/noter_backend/manage.py makemigrations
+python3 /noter-backend/noter_backend/manage.py migrate
+python3 /noter-backend/noter_backend/manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_superuser('admin', '${NOTER_BACKEND_ADMIN_EMAIL}', '${NOTER_BACKEND_ADMIN_PASSWORD}')"
+python3 /noter-backend/noter_backend/manage.py shell < /noter-backend/late_migrate.py
