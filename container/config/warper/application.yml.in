@@ -74,3 +74,4 @@ production:
   src_maps_dir: "/var/etc/maps/src/"
   dst_maps_dir: "/var/etc/maps/dst/"
   force_ssl: "false"  #set to "true" to force ssl in production mode 
+  analytics_tag: "${GOOGLE_ANALYTICS_TAG}"
