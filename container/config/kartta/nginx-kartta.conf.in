@@ -4,6 +4,7 @@ server {
 
     location / {
       root /kartta/build;
+      index mbgl-index.html;
     }
 
     location = /healthz {
