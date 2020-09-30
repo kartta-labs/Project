@@ -19,6 +19,12 @@ spec:
       - name: reservoir-sa-key-vlm
         secret:
           secretName: reservoir-sa-key
+      - name: container-secrets
+        secret:
+          secretName: container-secrets
+      - name: container-config-reservoir
+        configMap:
+          name: container-config-reservoir
       - name: reservoir-model-vlm
         persistentVolumeClaim:
           claimName: reservoir-fileserver-claim
@@ -31,10 +37,15 @@ spec:
         # securityContext:
         #   runAsUser: 1001 # To mount reservoirfs as GID 1001
         volumeMounts:
-        - mountPath: /reservoir/models
-          name: reservoir-model-vlm
-        command:
-          - "/container/config/reservoir/runmodwsgi-entrypoint.sh"
+        - name: reservoir-model-vlm
+          mountPath: /reservoir/models
+        - name: container-secrets
+          mountPath: /container/secrets
+          readOnly: true
+        - name: container-config-reservoir
+          mountPath: /container/config/reservoir
+        command: ["bash"]
+        args: ["/container/config/reservoir/runmodwsgi-entrypoint.sh"]
         ports:
           - name: http
             containerPort: 80

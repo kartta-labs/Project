@@ -18,10 +18,21 @@ log "RESERVOIR_STATIC_URL: ${RESERVOIR_STATIC_URL}"
 
 log "RESERVOIR_MODEL_DIR: ${RESERVOIR_MODEL_DIR}"
 
+log "RESERVOIR_DB_HOST: $RESERVOIR_DB_HOST"
+
+log "RESERVOIR_DB_PORT: $RESERVOIR_DB_PORT"
+
 chown -R :www-data /reservoir/models
 chmod -R a+wr /reservoir/models
 
 log "Checking permissions for /reservoir/models: $(ls -laF /reservoir/models)"
+
+CONNECTION_URL="postgresql://${RESERVOIR_DB_USER}:${RESERVOIR_DB_PASSWORD}@${RESERVOIR_DB_HOST}:${RESERVOIR_DB_PORT}/${RESERVOIR_DB_NAME}"
+
+until psql ${CONNECTION_URL} -c '\l'; do
+  >&2 echo "Waiting for postgres, sleeping."
+  sleep 10s
+done
 
 log "Starting runmodwsgi process."
 
