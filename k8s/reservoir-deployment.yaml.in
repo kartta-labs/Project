@@ -34,7 +34,7 @@ spec:
         - mountPath: /reservoir/models
           name: reservoir-model-vlm
         command:
-          - "/reservoir/container/config/reservoir/runmodwsgi-entrypoint.sh"
+          - "/container/config/reservoir/runmodwsgi-entrypoint.sh"
         ports:
           - name: http
             containerPort: 80
