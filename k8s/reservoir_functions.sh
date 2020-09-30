@@ -17,8 +17,9 @@
 # This file contains bash functions used by various scripts in this direcotry.
 # Don't run this file directly -- it gets loaded by other files.
 
-reservoir_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export reservoir_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+. ./container/secrets/secrets.env
 . ${reservoir_script_dir}/functions.sh
 
 # Name of cloud-sql instance.
@@ -126,6 +127,11 @@ function clone_reservoir {
     LOG "Pulling latest Reservoir repository."
     git -C ./reservoir pull origin master
   fi
+  
+  if $?; then
+    LOG_ERROR "Failed to clone/pull reservoir."
+    return 1
+  fi
 }
 
 function reservoir_cloud_build {
@@ -134,26 +140,24 @@ function reservoir_cloud_build {
   fi
   
   export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
-
-  # copy the container config and secrets to the ./reservoir subdirectory to be packaged with the source
-  if [ -d ./reservoir/container ]
-  then
-    echo "Cleaning ./reservoir/container"
-    rm -rf ./reservoir/container
-  fi
-  
-  cp -R ./container ./reservoir
+  LOG_INFO "RESERVOIR_SHORT_SHA=${RESERVOIR_SHORT_SHA}"
   
   if [ -z $CLOUDBUILD_LOGS_BUCKET ]; then
     CLOUDBUILD_LOGS_BUCKET="gs://cloudbuild-logs-$(generate_bucket_suffix)"
-    LOG "Generating new cloud build logs bucket: ${CLOUDBUILD_LOGS_BUCKET}"
+    LOG_INFO "Generating new CLOUDBUILD_LOGS_BUCKET: $CLOUDBUILD_LOGS_BUCKET"
+  else
+    LOG_INFO "CLOUDBUILD_LOGS_BUCKET: ${CLOUDBUILD_LOGS_BUCKET}"
+  fi
+
+  if ! gsutil ls "${CLOUDBUILD_LOGS_BUCKET}"; then
+    LOG_INFO "Creating logs bucket."
     if ! gsutil mb "${CLOUDBUILD_LOGS_BUCKET}"; then
-       LOG_ERROR "Failed to create logs storage bucket."
-       return 1
+      LOG_ERROR "Failed to create logs storage bucket: $CLOUDBUILD_LOGS_BUCKET"
+      return 1
     fi    
   fi
-       
-  LOG "CLOUDBUILD_LOGS_BUCKET: ${CLOUDBUILD_LOGS_BUCKET}"
+
+  LOG_INFO "Submitting build."
 
   set -x
   gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}"  --config ${reservoir_script_dir}/cloudbuild-reservoir.yaml ./reservoir
@@ -383,7 +387,10 @@ function reservoir_deploy_prod {
 
 function reservoir_create_resources_parallel {
   # Wait for this to complete prior to kicking of parallel cloud build.
-  clone_reservoir
+  if ! clone_reservoir; then
+    LOG_ERROR "Failed to clone reservoir, fix before creating resources."
+    return 1
+  fi
 
   # Wait on this so that create_db and cloud_build have access to the same
   # credentials through the secrets file.
