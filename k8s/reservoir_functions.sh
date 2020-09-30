@@ -478,6 +478,9 @@ function reservoir_create_resources_parallel {
     return 1
   fi
 
+  LOG_INFO "Pushing Project Secrets."
+  ${reservoir_script_dir}/resecret
+  
   LOG_INFO "Sucessfully created Reservoir resources."
 }
 
@@ -502,5 +505,4 @@ function reservoir_kbootstrap {
     LOG_ERROR "Failed to start reservoir internal service."
     return 1
   fi
-
 }

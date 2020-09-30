@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. /reservoir/container/secrets/secrets.env
+. /container/secrets/secrets.env
 
 echo "Initializing Reservoir DB."
 

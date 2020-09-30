@@ -2,7 +2,7 @@
 
 echo "foo"
 
-. /reservoir/container/secrets/secrets.env
+. /container/secrets/secrets.env
 
 function log {
     echo "[runmodwsgi entrypoint $(date)]: $1"
