@@ -27,13 +27,26 @@ spec:
         - name: reservoir-sa-key-vlm
           secret:
             secretName: reservoir-sa-key
+        - name: container-secrets
+          secret:
+            secretName: container-secrets
+        - name: container-config-reservoir
+          configMap:
+            name: container-config-reservoir
       containers:
         # [Start Reservoir DB Migration Job]
         - name: reservoir-db-migration
           image: gcr.io/${GCP_PROJECT_ID}/reservoir:latest
           imagePullPolicy: Always
           command: ["sh"]
-          args: ["/reservoir/container/config/reservoir/db-initialize-k8s"]
+          args: ["/container/config/reservoir/db-initialize-k8s"]
+          volumeMounts:
+          - name: container-secrets
+            mountPath: /container/secrets
+            readOnly: true
+          - name: container-config-reservoir
+            mountPath: /container/config/reservoir
+            readOnly: true
         # [End Reservoir DB Migration Job]
         # [Start CloudSQL Proxy Sidecar]
         - name: cloud-sql-proxy

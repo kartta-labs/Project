@@ -9,4 +9,13 @@ cp /container/config/fe/oauth-proxy.conf /etc/nginx/shared-conf/oauth-proxy.conf
   /container/config/fe/nginx-fe.conf.in /etc/nginx/sites-enabled/fe \
   /container/config/fe/renderer-config.js.in /srv/renderer/config.js
 
+. /container/secrets/secrets.env
+if [ "x$GOOGLE_ANALYTICS_TAG" = "x" ];
+then
+  echo "" > /srv/public/assets/analytics.html
+else 
+  /bin/sh /container/tools/subst \
+    /container/secrets/secrets.env \
+    /container/config/fe/analytics.html.in /srv/public/assets/analytics.html
+fi
 exec nginx -g "daemon off;"

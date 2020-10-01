@@ -17,8 +17,9 @@
 # This file contains bash functions used by various scripts in this direcotry.
 # Don't run this file directly -- it gets loaded by other files.
 
-reservoir_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export reservoir_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+. ./container/secrets/secrets.env
 . ${reservoir_script_dir}/functions.sh
 
 # Name of cloud-sql instance.
@@ -126,6 +127,11 @@ function clone_reservoir {
     LOG "Pulling latest Reservoir repository."
     git -C ./reservoir pull origin master
   fi
+  
+  if $?; then
+    LOG_ERROR "Failed to clone/pull reservoir."
+    return 1
+  fi
 }
 
 function reservoir_cloud_build {
@@ -134,26 +140,24 @@ function reservoir_cloud_build {
   fi
   
   export RESERVOIR_SHORT_SHA=`(cd reservoir ; git rev-parse --short HEAD)`
-
-  # copy the container config and secrets to the ./reservoir subdirectory to be packaged with the source
-  if [ -d ./reservoir/container ]
-  then
-    echo "Cleaning ./reservoir/container"
-    rm -rf ./reservoir/container
-  fi
-  
-  cp -R ./container ./reservoir
+  LOG_INFO "RESERVOIR_SHORT_SHA=${RESERVOIR_SHORT_SHA}"
   
   if [ -z $CLOUDBUILD_LOGS_BUCKET ]; then
     CLOUDBUILD_LOGS_BUCKET="gs://cloudbuild-logs-$(generate_bucket_suffix)"
-    LOG "Generating new cloud build logs bucket: ${CLOUDBUILD_LOGS_BUCKET}"
+    LOG_INFO "Generating new CLOUDBUILD_LOGS_BUCKET: $CLOUDBUILD_LOGS_BUCKET"
+  else
+    LOG_INFO "CLOUDBUILD_LOGS_BUCKET: ${CLOUDBUILD_LOGS_BUCKET}"
+  fi
+
+  if ! gsutil ls "${CLOUDBUILD_LOGS_BUCKET}"; then
+    LOG_INFO "Creating logs bucket."
     if ! gsutil mb "${CLOUDBUILD_LOGS_BUCKET}"; then
-       LOG_ERROR "Failed to create logs storage bucket."
-       return 1
+      LOG_ERROR "Failed to create logs storage bucket: $CLOUDBUILD_LOGS_BUCKET"
+      return 1
     fi    
   fi
-       
-  LOG "CLOUDBUILD_LOGS_BUCKET: ${CLOUDBUILD_LOGS_BUCKET}"
+
+  LOG_INFO "Submitting build."
 
   set -x
   gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/reservoir" "--substitutions=SHORT_SHA=${RESERVOIR_SHORT_SHA}"  --config ${reservoir_script_dir}/cloudbuild-reservoir.yaml ./reservoir
@@ -227,6 +231,8 @@ function reservoir_create_cloudsql_service_account {
   RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED="${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT}@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
   RESERVOIR_CLOUDSQL_KEY_SECRET="reservoir-sa-key"
 
+  LOG_INFO "RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED: ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED}"
+  
   if [ -z "${GCP_PROJECT_ID}" ]
   then
     LOG "Please specify GCP_PROJECTID env variable."
@@ -250,9 +256,11 @@ function reservoir_create_cloudsql_service_account {
     LOG "${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED} already exists."
   fi
 
+  set -x
   gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
     --member=serviceAccount:${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED} \
     --role=roles/cloudsql.editor
+  set +x
 
   if [ $? -ne 0 ]
   then
@@ -289,6 +297,16 @@ function reservoir_create_db_credentials {
   add_secret ${secrets_env_file} RESERVOIR_DB_NAME "${RESERVOIR_DB_NAME}"
   add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE "${RESERVOIR_DB_INSTANCE}"
   add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE_CONNECTION_NAME "${GCP_PROJECT_ID}:${GCP_REGION}:${RESERVOIR_DB_INSTANCE}=tcp:${RESERVOIR_DB_PORT}"
+
+  if gcloud beta sql instances describe "${RESERVOIR_DB_INSTANCE}"; then
+    LOG_INFO "${RESERVOIR_DB_INSTANCE} already exists, updating user password."
+    if ! gcloud beta sql users set-password reservoir --instance="${RESERVOIR_DB_INSTANCE}" --password "${RESERVOIR_DB_PASSWORD}"; then
+      LOG_ERROR "FAILED TO SET RESERVOIR_DB_PASSWORD!"
+      return 1
+    else
+      "Reset RESERVOIR_DB_PASSWORD...run resecrets."
+    fi
+  fi
 }
 
 function reservoir_create_db_instance {
@@ -365,7 +383,12 @@ function reservoir_start_external_service {
 function reservoir_deploy_debug {
   add_secret ${secrets_env_file} RESERVOIR_DEBUG "True"
   add_secret ${secrets_env_file} RESERVOIR_PORT "8080"
+  add_secret ${secrets_env_file} RESERVOIR_SITE_PREFIX ""
+  add_secret ${secrets_env_file} RESERVOIR_STATIC_URL "/static/"
+  
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  ${secript_dir}/resecret
+  
   ${script_dir}/kapply k8s/reservoir-deployment.yaml.in
 }
 
@@ -378,12 +401,17 @@ function reservoir_deploy_prod {
   sed -i "/RESERVOIR_PORT/ c export RESERVOIR_PORT=80" "${SECRETS_FILE}"
   
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  ${script_dir}/resecret
+  
   ${script_dir}/kapply k8s/reservoir-deployment.yaml.in
 }
 
 function reservoir_create_resources_parallel {
   # Wait for this to complete prior to kicking of parallel cloud build.
-  clone_reservoir
+  if ! clone_reservoir; then
+    LOG_ERROR "Failed to clone reservoir, fix before creating resources."
+    return 1
+  fi
 
   # Wait on this so that create_db and cloud_build have access to the same
   # credentials through the secrets file.
@@ -471,6 +499,9 @@ function reservoir_create_resources_parallel {
     return 1
   fi
 
+  LOG_INFO "Pushing Project Secrets."
+  ${reservoir_script_dir}/resecret
+  
   LOG_INFO "Sucessfully created Reservoir resources."
 }
 
@@ -495,5 +526,4 @@ function reservoir_kbootstrap {
     LOG_ERROR "Failed to start reservoir internal service."
     return 1
   fi
-
 }
