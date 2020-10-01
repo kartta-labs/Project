@@ -231,6 +231,8 @@ function reservoir_create_cloudsql_service_account {
   RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED="${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT}@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
   RESERVOIR_CLOUDSQL_KEY_SECRET="reservoir-sa-key"
 
+  LOG_INFO "RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED: ${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED}"
+  
   if [ -z "${GCP_PROJECT_ID}" ]
   then
     LOG "Please specify GCP_PROJECTID env variable."
@@ -254,9 +256,11 @@ function reservoir_create_cloudsql_service_account {
     LOG "${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED} already exists."
   fi
 
+  set -x
   gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
     --member=serviceAccount:${RESERVOIR_CLOUDSQL_SERVICE_ACCOUNT_QUALIFIED} \
     --role=roles/cloudsql.editor
+  set +x
 
   if [ $? -ne 0 ]
   then
@@ -293,6 +297,16 @@ function reservoir_create_db_credentials {
   add_secret ${secrets_env_file} RESERVOIR_DB_NAME "${RESERVOIR_DB_NAME}"
   add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE "${RESERVOIR_DB_INSTANCE}"
   add_secret ${secrets_env_file} RESERVOIR_DB_INSTANCE_CONNECTION_NAME "${GCP_PROJECT_ID}:${GCP_REGION}:${RESERVOIR_DB_INSTANCE}=tcp:${RESERVOIR_DB_PORT}"
+
+  if gcloud beta sql instances describe "${RESERVOIR_DB_INSTANCE}"; then
+    LOG_INFO "${RESERVOIR_DB_INSTANCE} already exists, updating user password."
+    if ! gcloud beta sql users set-password reservoir --instance="${RESERVOIR_DB_INSTANCE}" --password "${RESERVOIR_DB_PASSWORD}"; then
+      LOG_ERROR "FAILED TO SET RESERVOIR_DB_PASSWORD!"
+      return 1
+    else
+      "Reset RESERVOIR_DB_PASSWORD...run resecrets."
+    fi
+  fi
 }
 
 function reservoir_create_db_instance {
