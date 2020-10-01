@@ -9,8 +9,6 @@ defaults: &defaults
   email: example_user@example.com
   addthis_twitter_user: example_user@example.com
   addthis_user: example_user
-  google_analytics_code:
-  google_analytics_cookie_path:  ""
   src_maps_dir: 
   dst_maps_dir: 
   map_mask_dir: 
@@ -57,6 +55,7 @@ defaults: &defaults
   enable_ocr_job: "${MAPWARPER_ENABLE_OCR_JOB}"  #set to "true" to enable the OCR and geocoding job upon map creation
   ocr_bucket: "${MAPWARPER_OCR_BUCKET}" # name of the bucket to store images for OCR processing, should be globablly unique
   force_ssl: "false"  #set to "false" to disable ssl or "true" 
+  analytics_tag: "${GOOGLE_ANALYTICS_TAG}"
   
 
 development:
@@ -74,4 +73,3 @@ production:
   src_maps_dir: "/var/etc/maps/src/"
   dst_maps_dir: "/var/etc/maps/dst/"
   force_ssl: "false"  #set to "true" to force ssl in production mode 
-  analytics_tag: "${GOOGLE_ANALYTICS_TAG}"
