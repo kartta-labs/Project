@@ -369,7 +369,12 @@ function reservoir_start_external_service {
 function reservoir_deploy_debug {
   add_secret ${secrets_env_file} RESERVOIR_DEBUG "True"
   add_secret ${secrets_env_file} RESERVOIR_PORT "8080"
+  add_secret ${secrets_env_file} RESERVOIR_SITE_PREFIX ""
+  add_secret ${secrets_env_file} RESERVOIR_STATIC_URL "/static/"
+  
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  ${secript_dir}/resecret
+  
   ${script_dir}/kapply k8s/reservoir-deployment.yaml.in
 }
 
@@ -382,6 +387,8 @@ function reservoir_deploy_prod {
   sed -i "/RESERVOIR_PORT/ c export RESERVOIR_PORT=80" "${SECRETS_FILE}"
   
   local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  ${script_dir}/resecret
+  
   ${script_dir}/kapply k8s/reservoir-deployment.yaml.in
 }
 
