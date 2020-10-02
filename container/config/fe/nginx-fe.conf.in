@@ -16,6 +16,7 @@ __ENDIF__
       alias /srv/renderer;
       location /3d/index.html {
         ssi on;
+      }
     }
 
     # for warper uploads
