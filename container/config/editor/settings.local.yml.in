@@ -39,7 +39,8 @@ sendgrid_api_key: "${EDITOR_SENDGRID_API_KEY}"
 # insert the value of the OAuth consumer key for the iD editor (delimited by quotes) here:
 id_key: "xxxxxxxx"
 
-# nominatim_url: "????"
+# with trailing /
+nominatim_url: "${NOMINATIM_SERVER_URL}"
 oauth_key: "xxxxxxxx"
 
 analytics_tag: "${GOOGLE_ANALYTICS_TAG}"
