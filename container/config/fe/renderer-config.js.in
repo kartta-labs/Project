@@ -1,4 +1,5 @@
 const Config = {
-  'endpoint': '${RENDERER_BBOX_DATA_URL}'
+  'endpoint': '${RENDERER_BBOX_DATA_URL}',
+  'reservoir_url': '${RENDERER_RESERVOIR_URL}'
 };
 export {Config};
