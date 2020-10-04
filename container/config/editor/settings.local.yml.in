@@ -43,3 +43,11 @@ id_key: "xxxxxxxx"
 oauth_key: "xxxxxxxx"
 
 analytics_tag: "${GOOGLE_ANALYTICS_TAG}"
+
+# noter related env variabls
+noter_frontend_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}/nf"
+noter_backend_url: "${SERVER_SCHEME}://${EDITOR_SERVER_NAME}/nb"
+noter_backend_internal: "http://noter-backend:${NOTER_BACKEND_PORT}"
+noter_backend_download_path: "/download/"
+noter_backend_images_path: "/api/v0.1/images/"
+noter_backend_whatdoihave_path: "/api/v0.1/whatdoihave/"
