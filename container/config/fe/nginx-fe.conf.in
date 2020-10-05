@@ -9,10 +9,16 @@ __IF${FORCE_HTTPS}THEN__
 __ENDIF__
 
     location /assets {
+__IF1${FORCE_ALL_AUTH}THEN__
+include /etc/nginx/shared-conf/oauth-proxy.conf;
+__ENDIF1__
       root /srv/public;
     }
 
     location /3d {
+__IF1${FORCE_ALL_AUTH}THEN__
+include /etc/nginx/shared-conf/oauth-proxy.conf;
+__ENDIF1__
       alias /srv/kscope;
       location /3d/index.html {
         ssi on;
@@ -118,30 +124,45 @@ __ENDIF__
 
 __IF${ENABLE_KARTTA}THEN__
     location = /faq {
+__IF1${FORCE_ALL_AUTH}THEN__
+include /etc/nginx/shared-conf/oauth-proxy.conf;
+__ENDIF1__
       proxy_pass http://kartta:${KARTTA_PORT}/faq.html;
       proxy_redirect off;
       access_log /var/log/nginx/kartta.access.log combined;
     }
 
     location = /help {
+__IF1${FORCE_ALL_AUTH}THEN__
+include /etc/nginx/shared-conf/oauth-proxy.conf;
+__ENDIF1__
       proxy_pass http://kartta:${KARTTA_PORT}/help.html;
       proxy_redirect off;
       access_log /var/log/nginx/kartta.access.log combined;
     }
 
     location = /about {
+__IF1${FORCE_ALL_AUTH}THEN__
+include /etc/nginx/shared-conf/oauth-proxy.conf;
+__ENDIF1__
       proxy_pass http://kartta:${KARTTA_PORT}/about.html;
       proxy_redirect off;
       access_log /var/log/nginx/kartta.access.log combined;
     }
 
     location = /attributions {
+__IF1${FORCE_ALL_AUTH}THEN__
+include /etc/nginx/shared-conf/oauth-proxy.conf;
+__ENDIF1__
       proxy_pass http://kartta:${KARTTA_PORT}/attributions.html;
       proxy_redirect off;
       access_log /var/log/nginx/kartta.access.log combined;
     }
 
     location / {
+__IF1${FORCE_ALL_AUTH}THEN__
+include /etc/nginx/shared-conf/oauth-proxy.conf;
+__ENDIF1__
       proxy_pass http://kartta:${KARTTA_PORT};
       proxy_redirect off;
       proxy_set_header Host ${D}host;
