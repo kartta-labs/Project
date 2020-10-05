@@ -7,7 +7,7 @@ cp /container/config/fe/oauth-proxy.conf /etc/nginx/shared-conf/oauth-proxy.conf
 /bin/sh /container/tools/subst \
   /container/secrets/secrets.env \
   /container/config/fe/nginx-fe.conf.in /etc/nginx/sites-enabled/fe \
-  /container/config/fe/renderer-config.js.in /srv/renderer/config.js
+  /container/config/fe/kscope-config.js.in /srv/kscope/config.js
 
 . /container/secrets/secrets.env
 if [ "x$GOOGLE_ANALYTICS_TAG" = "x" ];

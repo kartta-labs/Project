@@ -129,7 +129,7 @@ fi
 git clone ${EDITOR_REPO} editor-website
 git clone ${MAPWARPER_REPO} warper
 git clone ${CGIMAP_REPO} openstreetmap-cgimap
-git clone ${RENDERER_REPO} renderer
+git clone ${KSCOPE_REPO} kscope
 
 if [ "${ENABLE_KARTTA}" != "" ]; then
   git clone ${KARTTA_REPO} kartta
