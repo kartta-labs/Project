@@ -1,5 +1,5 @@
 const Config = {
-  'endpoint': '${RENDERER_BBOX_DATA_URL}',
-  'reservoir_url': '${RENDERER_RESERVOIR_URL}'
+  'endpoint': '${KSCOPE_BBOX_DATA_URL}',
+  'reservoir_url': '${KSCOPE_RESERVOIR_URL}'
 };
 export {Config};

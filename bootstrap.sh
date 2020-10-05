@@ -70,7 +70,7 @@ if [ "${ENABLE_FE_ID}" != "" ] ; then
   sudo ./dcwrapper -f docker-compose-id.yml build id
 fi
 
-git clone ${RENDERER_REPO} renderer
+git clone ${KSCOPE_REPO} kscope
 
 sudo ./dcwrapper build fe
 
