@@ -8,7 +8,7 @@ RUN apt-get update -qq \
 RUN mkdir -p /srv
 
 COPY ./public /srv/public
-COPY ./renderer /srv/renderer
+COPY ./kscope /srv/kscope
 
 RUN chmod -R a+rx /srv
 

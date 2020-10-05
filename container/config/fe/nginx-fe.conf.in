@@ -13,7 +13,7 @@ __ENDIF__
     }
 
     location /3d {
-      alias /srv/renderer;
+      alias /srv/kscope;
       location /3d/index.html {
         ssi on;
       }
