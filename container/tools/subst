@@ -47,7 +47,21 @@
 # __IF${NAME}THEN__ and __ENDIF__ expressions must appear on lines by
 # themselves, with no leading or trailing whitespace or any other text.  The
 # value of NAME should never include newlines.
-
+#
+# Nesting of __IF${NAME}THEN__ sections not directly supported, but there is
+# a crude workaround for this: in addition to the above syntax you can also use
+#
+# __IF0${NAME}THEN__
+# __ENDIF0__
+#
+# and
+#
+# __IF1${NAME}THEN__
+# __ENDIF1__
+#
+# These 3 forms ("__IF", "__IF0", and "__IF1") are treated separately and can be
+# nested, as long as each level uses a different form, and each level contains
+# no nested blocks using the same form.  (So nesting is limited to 3 deep.)
 . $1
 shift
 
@@ -56,6 +70,12 @@ export D=\$
 while [ "$#" -gt "0" ]
 do
   envsubst < "$1" \
+    | sed '/^__IF1THEN__$/,/^__ENDIF1__$/d' \
+    | sed '/^__IF1.*THEN__$/d' \
+    | sed '/^__ENDIF1__$/d' \
+    | sed '/^__IF0THEN__$/,/^__ENDIF0__$/d' \
+    | sed '/^__IF0.*THEN__$/d' \
+    | sed '/^__ENDIF0__$/d' \
     | sed '/^__IFTHEN__$/,/^__ENDIF__$/d' \
     | sed '/^__IF.*THEN__$/d' \
     | sed '/^__ENDIF__$/d' \
