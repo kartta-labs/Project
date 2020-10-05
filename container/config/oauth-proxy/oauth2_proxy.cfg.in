@@ -46,7 +46,7 @@ auth_logging_format = "{{.Client}} - {{.Username}} [{{.Timestamp}}] [{{.Status}}
 ## for more granular authorization use `authenticated_emails_file`
 ## To authorize any email addresses use "*"
 email_domains = [
-    "*"
+    ${OAUTH_PROXY_EMAIL_DOMAINS}
 ]
 
 ## The OAuth Client ID, Secret
