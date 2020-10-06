@@ -19,4 +19,6 @@ exec env -i - \
   CGIMAP_SOCKET=":${CGIMAP_PORT}" \
   CGIMAP_HOST="${CGIMAP_DB_HOST}" \
   CGIMAP_PASSWORD="${CGIMAP_DB_PASSWORD}" \
+  CGIMAP_COPYRIGHT="${KARTTA_LABS_COPYRIGHT}" \
+  CGIMAP_ATTRIBUTION="${KARTTA_LABS_ATTRIBUTION}" \
   /srv/openstreetmap-cgimap/openstreetmap-cgimap
