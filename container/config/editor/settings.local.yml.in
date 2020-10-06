@@ -28,7 +28,9 @@ other_user_db_delete_url: "${EDITOR_OTHER_USER_DB_DELETE_URL}"
 storage_url : "https://storage.googleapis.com"
 server_url: "${EDITOR_SERVER_URL}"
 
-generator: "local server"
+generator: "${KARTTA_LABS_SERVER_TITLE}"
+copyright_owner: "${KARTTA_LABS_COPYRIGHT}"
+attribution_url: "${KARTTA_LABS_ATTRIBUTION}"
 
 support_email: "${EDITOR_SUPPORT_EMAIL}"
 
