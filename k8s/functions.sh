@@ -139,3 +139,73 @@ function wait_for_k8s_deployment_app_ready {
   exit -1
 }
 
+function clone_repo {
+  # usage:
+  #   clone_repo REPO DIR [ PARENT ]
+  repo=$1
+  dir=$2
+  parent=$3
+
+  if [ "$parent" == "" ] ; then
+    path="$dir"
+    parent="."
+  else
+    path="$parent/$dir"
+  fi
+  if [ -d $path ] ; then
+    echo "Warning: not cloning $path because directory already exists"
+    return
+  fi
+  ( cd $parent ; git clone $repo $dir )
+}
+
+
+function build_sha {
+  app=$1
+  if [ "${app}" == "fe" ] ; then
+    cat Dockerfile-fe container/config/fe/* | md5sum  | sed -e 's/\(.\{7\}\).*/\1/'
+  elif  [ "${app}" == "oauth-proxy" ] ; then
+    cat Dockerfile-oauth-proxy container/config/oauth-proxy/* | md5sum  | sed -e 's/\(.\{7\}\).*/\1/'
+  elif  [ "${app}" == "editor" ] ; then
+    (cd editor-website ; git rev-parse --short HEAD)
+  elif  [ "${app}" == "cgimap" ] ; then
+    (cd openstreetmap-cgimap ; git rev-parse --short HEAD)
+  elif  [ "${app}" == "warper" ] ; then
+    (cd warper ; git rev-parse --short HEAD)
+  elif  [ "${app}" == "kartta" ] ; then
+    (cd kartta ; git rev-parse --short HEAD)
+  elif  [ "${app}" == "noter-backend" ] ; then
+    (cd noter-backend ; git rev-parse --short HEAD)
+  elif  [ "${app}" == "noter-frontend" ] ; then
+    (cd noter-frontend ; git rev-parse --short HEAD)
+  elif  [ "${app}" == "reservoir" ] ; then
+    (cd reservoir ; git rev-parse --short HEAD)
+  else
+    echo "ERROR: don't know how to generate build sha for app ${app}"
+   exit -1
+  fi
+}
+
+function cloud_build {
+  # usage:
+  #    cloud_build APP SHA_CMD BUILD_DIR
+  #   BUILD_DIR defaults to "." if omitted
+  app=$1
+  build_dir=$2
+
+  short_sha=$(build_sha ${app})
+  clouddbuild_yaml="k8s/cloudbuild-${app}.yaml"
+
+  if [ "$build_dir" == "" ] ; then
+    build_dir="."
+  fi
+
+  if [ ! -f ${clouddbuild_yaml} ] ; then
+    echo "Error: not building ${app} because ${clouddbuild_yaml} not found"
+    return
+  fi
+
+  echo gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/$app" "--substitutions=SHORT_SHA=${short_sha}"  --config ${clouddbuild_yaml} ${build_dir}
+  echo gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/${app}:${short_sha}" "gcr.io/${GCP_PROJECT_ID}/${app}:latest"
+}
+

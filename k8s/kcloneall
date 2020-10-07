@@ -1,0 +1,15 @@
+#! /bin/sh
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. ${script_dir}/functions.sh
+
+clone_repo "${EDITOR_REPO}" editor-website
+clone_repo "${MAPWARPER_REPO}" warper
+clone_repo "${CGIMAP_REPO}" openstreetmap-cgimap
+clone_repo "${KSCOPE_REPO}" kscope
+clone_repo "${RESERVOIR_REPO}" reservoir
+clone_repo "${KARTTA_REPO}" kartta
+clone_repo "${ANTIQUE_REPO}" antique kartta
+clone_repo "${RESERVOIR_REPO}" reservoir
+clone_repo "${NOTER_BACKEND_REPO}" noter-backend
+clone_repo "${NOTER_FRONTEND_REPO}" noter-frontend
