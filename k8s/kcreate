@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-./k8s/ksubst $1 | kubectl create -f -
+./k8s/ksubst $1 | kubectl create --save-config -f -

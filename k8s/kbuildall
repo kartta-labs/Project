@@ -8,7 +8,7 @@ cloud_build fe
 cloud_build editor
 cloud_build cgimap
 cloud_build warper
-cloud_build kartta
 cloud_build noter-backend
 cloud_build noter-frontend
+cloud_build kartta
 cloud_build reservoir
