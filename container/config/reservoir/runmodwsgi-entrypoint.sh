@@ -34,14 +34,19 @@ until psql ${CONNECTION_URL} -c '\l'; do
   sleep 10s
 done
 
-log "Starting runmodwsgi process."
 
 cd /reservoir
+
+log "Fixing permissions."
+chmod -R a+r .
+find . -type d -print | xargs chmod a+x
+log "Permissions fixed."
 
 log "Running migrations."
 python manage.py makemigrations
 python manage.py migrate
 log "Migrations complete."
 
+log "Starting runmodwsgi process."
 python manage.py runmodwsgi --port 80 --user=www-data --group=www-data \
        --server-root=/etc/mod_wsgi-express-80 --error-log-format "%M" --log-to-terminal
