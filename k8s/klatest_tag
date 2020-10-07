@@ -1,0 +1,22 @@
+#! /usr/bin/python
+
+# Extract the explicit tag string associated with the gcr container image tagged "latest"
+
+# Specifically, expects a json string as returned by a command like
+#   gcloud container images --format=json list-tags gcr.io/${GCP_PROJECT_ID}/kartta
+# on stdin, and parses it to find the image tagged with "latest", and prints the first other
+# tag for that image.
+
+import json
+import sys
+
+data = json.loads(sys.stdin.read())
+
+for obj in data:
+  if len(obj['tags']) > 1 and "latest" in obj['tags']:
+    for t in obj['tags']:
+      if t != "latest":
+        print(t)
+        sys.exit(0)
+
+print("")

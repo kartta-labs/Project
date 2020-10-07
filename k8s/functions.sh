@@ -186,26 +186,41 @@ function build_sha {
   fi
 }
 
+# Return the directory (relative to Project/) for cloud builds for an app.
+function build_dir {
+  app=$1
+  # kartta and reservoir get built from their respective subdirs; everything else gets build from
+  # the top level Project dir (".")
+  if [ "${app}" == "kartta" ] ; then
+    echo "kartta"
+  elif  [ "${app}" == "reservoir" ] ; then
+    echo "reservoir"
+  else
+    echo "."
+  fi
+}
+
 function cloud_build {
   # usage:
-  #    cloud_build APP SHA_CMD BUILD_DIR
-  #   BUILD_DIR defaults to "." if omitted
+  #    cloud_build APP
   app=$1
-  build_dir=$2
 
   short_sha=$(build_sha ${app})
   clouddbuild_yaml="k8s/cloudbuild-${app}.yaml"
-
-  if [ "$build_dir" == "" ] ; then
-    build_dir="."
-  fi
 
   if [ ! -f ${clouddbuild_yaml} ] ; then
     echo "Error: not building ${app} because ${clouddbuild_yaml} not found"
     return
   fi
 
-  echo gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/$app" "--substitutions=SHORT_SHA=${short_sha}"  --config ${clouddbuild_yaml} ${build_dir}
-  echo gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/${app}:${short_sha}" "gcr.io/${GCP_PROJECT_ID}/${app}:latest"
+  gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/$app" "--substitutions=SHORT_SHA=${short_sha}"  --config ${clouddbuild_yaml} $(build_dir ${app})
+  gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/${app}:${short_sha}" "gcr.io/${GCP_PROJECT_ID}/${app}:latest"
 }
 
+function rolling_update {
+  # usage:
+  #    rolling_update APP
+  app=$1
+  tag=$(gcloud container images --format=json list-tags gcr.io/${GCP_PROJECT_ID}/${app} | ./k8s/klatest_tag)
+  kubectl set image deployment ${app} ${app}=gcr.io/${GCP_PROJECT_ID}/${app}:${tag}
+}
