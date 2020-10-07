@@ -1,0 +1,14 @@
+#! /bin/sh
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. ${script_dir}/functions.sh
+
+cloud_build oauth-proxy
+cloud_build fe
+cloud_build editor
+cloud_build cgimap
+cloud_build warper
+cloud_build kartta
+cloud_build noter-backend
+cloud_build noter-frontend
+cloud_build reservoir

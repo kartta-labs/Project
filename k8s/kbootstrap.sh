@@ -43,6 +43,7 @@ add_secret ${secrets_env_file} MAPWARPER_RAILS_ENV "production"
 add_secret ${secrets_env_file} MAPWARPER_GOOGLE_STORAGE_ENABLED "true"
 add_secret ${secrets_env_file} MAPWARPER_SECRET_KEY_BASE $(generate_secret_key)
 add_secret ${secrets_env_file} FORCE_HTTPS "true"
+add_secret ${secrets_env_file} KLUSTER "${GCP_PROJECT_ID}-k1"
 
 set -x
 
@@ -52,7 +53,6 @@ set -x
 gcloud config set project ${GCP_PROJECT_ID}
 gcloud config set compute/zone ${GCP_ZONE}
 gcloud services enable cloudbuild.googleapis.com container.googleapis.com containerregistry.googleapis.com file.googleapis.com redis.googleapis.com servicenetworking.googleapis.com sql-component.googleapis.com sqladmin.googleapis.com storage-api.googleapis.com storage-component.googleapis.com vision.googleapis.com maps-backend.googleapis.com geolocation.googleapis.com geocoding-backend.googleapis.com
-export KLUSTER="${GCP_PROJECT_ID}-k1"
 gcloud container clusters create ${KLUSTER} --zone ${GCP_ZONE} --release-channel stable --enable-ip-alias --machine-type "n1-standard-4" --num-nodes=3
 gcloud compute addresses create google-managed-services-default --global --purpose=VPC_PEERING --prefix-length=20 --network=default
 gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --network=default --ranges=google-managed-services-default
@@ -126,45 +126,54 @@ fi
 ###
 ### clone code repos
 ###
-git clone ${EDITOR_REPO} editor-website
-git clone ${MAPWARPER_REPO} warper
-git clone ${CGIMAP_REPO} openstreetmap-cgimap
-git clone ${KSCOPE_REPO} kscope
-
+clone_repo "$EDITOR_REPO" editor-website
+clone_repo "${MAPWARPER_REPO}" warper
+clone_repo "${CGIMAP_REPO}" openstreetmap-cgimap
+clone_repo "${KSCOPE_REPO}" kscope
+clone_repo "${RESERVOIR_REPO}" reservoir
 if [ "${ENABLE_KARTTA}" != "" ]; then
-  git clone ${KARTTA_REPO} kartta
-  (cd kartta ; git clone ${ANTIQUE_REPO} antique)
+  clone_repo "${KARTTA_REPO}" kartta
+  clone_repo "${ANTIQUE_REPO}" antique kartta
 fi
 
 ###
 ### build & tag latest images
 ###
 
+cloud_build oauth-proxy
+cloud_build fe
+cloud_build editor
+cloud_build cgimap
+cloud_build warper
+if [ "${ENABLE_KARTTA}" != "" ]; then
+  cloud_build kartta
+fi
 
-# oauth-proxy
-export OAUTH_PROXY_SHORT_SHA=`cat Dockerfile-oauth-proxy container/config/oauth-proxy/* | md5sum  | sed -e 's/\(.\{7\}\).*/\1/'`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/oauth_proxy" "--substitutions=SHORT_SHA=${OAUTH_PROXY_SHORT_SHA}"  --config k8s/cloudbuild-oauth-proxy.yaml .
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/oauth-proxy:${OAUTH_PROXY_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/oauth-proxy:latest"
 
-# fe
-export FE_SHORT_SHA=`cat Dockerfile-fe container/config/fe/* | md5sum  | sed -e 's/\(.\{7\}\).*/\1/'`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/fe" "--substitutions=SHORT_SHA=${FE_SHORT_SHA}"  --config k8s/cloudbuild-fe.yaml .
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/fe:${FE_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/fe:latest"
-
-# editor
-export EDITOR_SHORT_SHA=`(cd editor-website ; git rev-parse --short HEAD)`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/editor" "--substitutions=SHORT_SHA=${EDITOR_SHORT_SHA}"  --config k8s/cloudbuild-editor.yaml .
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/editor:${EDITOR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/editor:latest"
-
-# cgimap
-export CGIMAP_SHORT_SHA=`(cd openstreetmap-cgimap ; git rev-parse --short HEAD)`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/cgimap" "--substitutions=SHORT_SHA=${CGIMAP_SHORT_SHA}"  --config k8s/cloudbuild-cgimap.yaml .
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/cgimap:${CGIMAP_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/cgimap:latest"
-
-# warper
-export MAPWARPER_SHORT_SHA=`(cd warper ; git rev-parse --short HEAD)`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/warper" "--substitutions=SHORT_SHA=${MAPWARPER_SHORT_SHA}"  --config k8s/cloudbuild-warper.yaml .
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/warper:latest"
+### # oauth-proxy
+### export OAUTH_PROXY_SHORT_SHA=
+### gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/oauth_proxy" "--substitutions=SHORT_SHA=${OAUTH_PROXY_SHORT_SHA}"  --config k8s/cloudbuild-oauth-proxy.yaml .
+### gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/oauth-proxy:${OAUTH_PROXY_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/oauth-proxy:latest"
+### 
+### # fe
+### export FE_SHORT_SHA=`cat Dockerfile-fe container/config/fe/* | md5sum  | sed -e 's/\(.\{7\}\).*/\1/'`
+### gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/fe" "--substitutions=SHORT_SHA=${FE_SHORT_SHA}"  --config k8s/cloudbuild-fe.yaml .
+### gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/fe:${FE_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/fe:latest"
+### 
+### # editor
+### export EDITOR_SHORT_SHA=`(cd editor-website ; git rev-parse --short HEAD)`
+### gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/editor" "--substitutions=SHORT_SHA=${EDITOR_SHORT_SHA}"  --config k8s/cloudbuild-editor.yaml .
+### gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/editor:${EDITOR_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/editor:latest"
+### 
+### # cgimap
+### export CGIMAP_SHORT_SHA=`(cd openstreetmap-cgimap ; git rev-parse --short HEAD)`
+### gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/cgimap" "--substitutions=SHORT_SHA=${CGIMAP_SHORT_SHA}"  --config k8s/cloudbuild-cgimap.yaml .
+### gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/cgimap:${CGIMAP_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/cgimap:latest"
+### 
+### # warper
+### export MAPWARPER_SHORT_SHA=`(cd warper ; git rev-parse --short HEAD)`
+### gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/warper" "--substitutions=SHORT_SHA=${MAPWARPER_SHORT_SHA}"  --config k8s/cloudbuild-warper.yaml .
+### gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/warper:${MAPWARPER_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/warper:latest"
 
 if [ "${ENABLE_RESERVOIR}" != "" ]; then
   . ${script_dir}/reservoir_functions.sh
@@ -176,12 +185,6 @@ else
   LOG_INFO "Skipping Reservoir bootstrap."
 fi
 
-# kartta
-if [ "${ENABLE_KARTTA}" != "" ]; then
-  export KARTTA_SHORT_SHA=`(cd kartta ; git rev-parse --short HEAD)`
-  gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/kartta" "--substitutions=SHORT_SHA=${KARTTA_SHORT_SHA}"  --config k8s/cloudbuild-kartta.yaml kartta
-  gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/kartta:${KARTTA_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/kartta:latest"
-fi
 
 ###
 ### editor database
