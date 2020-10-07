@@ -73,22 +73,16 @@ ${script_dir}/kcreate k8s/noter-frontend-service.yaml.in
 ###
 ### clone code repos
 ###
-git clone ${NOTER_BACKEND_REPO} noter-backend
-git clone ${NOTER_FRONTEND_REPO} noter-frontend
+clone_repo ${NOTER_BACKEND_REPO} noter-backend
+clone_repo ${NOTER_FRONTEND_REPO} noter-frontend
 
 
 ###
 ### build & tag latest images
 ###
 
-export OAUTH_PROXY_SHORT_SHA=`cat Dockerfile-noter-backend container/config/noter-backend/* | md5sum  | sed -e 's/\(.\{7\}\).*/\1/'`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/oauth_proxy" "--substitutions=SHORT_SHA=${OAUTH_PROXY_SHORT_SHA}"  --config k8s/cloudbuild-noter-backend.yaml .
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/noter-backend:${OAUTH_PROXY_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/noter-backend:latest"
-
-export OAUTH_PROXY_SHORT_SHA=`cat Dockerfile-noter-frontend container/config/noter-frontend/* | md5sum  | sed -e 's/\(.\{7\}\).*/\1/'`
-gcloud builds submit "--gcs-log-dir=${CLOUDBUILD_LOGS_BUCKET}/oauth_proxy" "--substitutions=SHORT_SHA=${OAUTH_PROXY_SHORT_SHA}"  --config k8s/cloudbuild-noter-frontend.yaml .
-gcloud container images add-tag --quiet "gcr.io/${GCP_PROJECT_ID}/noter-frontend:${OAUTH_PROXY_SHORT_SHA}" "gcr.io/${GCP_PROJECT_ID}/noter-frontend:latest"
-
+cloud_build noter-backend
+cloud_build noter-frontend
 
 ###
 ### database

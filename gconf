@@ -1,0 +1,13 @@
+# Load this file to switch to the k8s configs specified in the current deployment secrets file.
+# E.g:
+#      . ./gconf
+
+. ./container/secrets/secrets.env
+
+export K8S_CONTEXT=gke_${GCP_PROJECT_ID}_${GCP_ZONE}_${KLUSTER}
+
+echo "gcp project: ${GCP_PROJECT_ID}"
+echo "gcp zone: ${GCP_ZONE}"
+gcloud config set project ${GCP_PROJECT_ID}
+gcloud config set compute/zone ${GCP_ZONE}
+kubectl config use-context ${K8S_CONTEXT}
