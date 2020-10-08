@@ -72,8 +72,15 @@ __ENDIF1__
     location ~ ^${EDITOR_SITE_PREFIX}/api/0\.6/(node|way|relation)/[0-9]+${D} {
         include /etc/nginx/shared-conf/oauth-proxy.conf;
         include /etc/nginx/fastcgi_params;
-        fastcgi_pass cgimap:8000;
-        access_log /var/log/nginx/api.n-w-r.access.log combined;
+	proxy_set_header Host ${FE_SERVER_NAME};
+	if (${D}request_method != DELETE) {
+          fastcgi_pass cgimap:8000;
+          access_log /var/log/nginx/api.n-w-r.access.log combined;
+	}
+	if (${D}request_method = DELETE) {
+          proxy_pass http://editor:${EDITOR_PORT};
+          access_log /var/log/nginx/editor.access.log combined;
+	}
     }
 
     #

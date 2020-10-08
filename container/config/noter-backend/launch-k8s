@@ -10,7 +10,8 @@ export NOTER_DB_NAME="noterdb"
 export NOTER_DB_USER=${NOTER_BACKEND_DB_USER}
 export NOTER_DB_PASSWORD=${NOTER_BACKEND_POSTGRES_PASSWORD}
 export NOTER_DB_HOST=${NOTER_BACKEND_DB_HOST}
-export GOOGLE_APPLICATION_CREDENTIALS="/container/secrets/noter-backend-bucket-credential.json"
+export NOTER_GS_MEDIA_BUCKET_NAME=${NOTER_BUCKET}
+export GOOGLE_APPLICATION_CREDENTIALS="/container/secrets/noter-service-account.json"
 export NOTER_LOOKUP_ENDPOINTS_YAML="/etc/lookup_endpoints.yaml"
 
 if [[ -z "${NOTER_GS_MEDIA_BUCKET_NAME}" ]]; then
