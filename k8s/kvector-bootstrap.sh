@@ -168,7 +168,7 @@ set -x
 kubectl cp natural_earth_vector.$$/packages/natural_earth_vector.sqlite ${pgutil_pod_name}:/tmp
 kubectl cp natural_earth_edits.tgz ${pgutil_pod_name}:/tmp
 /bin/rm -f natural_earth_edits.tgz
-/bin/rm -f natural_earth_vector.$$
+/bin/rm -rf natural_earth_vector.$$
 /bin/rm -f natural_earth_vector.sqlite.zip
 
 ###

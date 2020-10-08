@@ -1,10 +1,24 @@
-# Load this file to switch to the k8s configs specified in the current deployment secrets file.
-# E.g:
-#      . ./gconf
+# Load this file into your shell to switch to the k8s configs specified in the current deployment secrets file.
+# Usage:
+#    . ./gconf [ --vector ]
+# If --vector is present, it will wwitch to the vector tile cluster rather than the web app cluster.
+#
+# Note this isn't an exectable script; it's a set of commands intended to be loaded into your shell.
+# It sets environment variables in your shell.
+#
+# If you execute it via 'bash ./gconf' rather than '. ./gconf' (or 'source ./gconf'), it will still
+# work but will not modify your shell's current enviroment.
 
 . ./container/secrets/secrets.env
 
-export K8S_CONTEXT=gke_${GCP_PROJECT_ID}_${GCP_ZONE}_${KLUSTER}
+if [ "$1" == "--vector" ] ; then
+  export K8S_CONTEXT=gke_${GCP_PROJECT_ID}_${GCP_ZONE}_tegola-${GCP_ZONE}
+  echo ""
+  echo "Setting k8s context for vector tile cluster"
+  echo ""
+else
+  export K8S_CONTEXT=gke_${GCP_PROJECT_ID}_${GCP_ZONE}_${KLUSTER}
+fi
 
 echo "gcp project: ${GCP_PROJECT_ID}"
 echo "gcp zone: ${GCP_ZONE}"
