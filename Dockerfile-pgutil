@@ -3,6 +3,6 @@ FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -qq
-RUN apt-get install -y postgresql-client osm2pgsql gdal-bin unzip wget emacs curl iputils-ping gettext-base
+RUN apt-get install -y postgresql-client osm2pgsql gdal-bin unzip wget emacs curl iputils-ping gettext-base osmosis
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]
