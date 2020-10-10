@@ -1,7 +1,8 @@
 # Load this file into your shell to switch to the k8s configs specified in the current deployment secrets file.
 # Usage:
-#    . ./gconf [ --vector ]
+#    . ./gconf [ --vector | --clear ]
 # If --vector is present, it will wwitch to the vector tile cluster rather than the web app cluster.
+# If --clear is present, it will unset your active gcp project and k8s cluster config.
 #
 # Note this isn't an exectable script; it's a set of commands intended to be loaded into your shell.
 # It sets environment variables in your shell.
@@ -11,17 +12,27 @@
 
 . ./container/secrets/secrets.env
 
-if [ "$1" == "--vector" ] ; then
-  export K8S_CONTEXT=gke_${GCP_PROJECT_ID}_${GCP_ZONE}_tegola-${GCP_ZONE}
+if [ "$1" == "--clear" ] ; then
+  echo 'Clearing active gcloud project ... ignore warning below about not having access to project "none".'
+  gcloud config set project none
+  gcloud config set compute/zone none
+  kubectl config unset current-context
   echo ""
-  echo "Setting k8s context for vector tile cluster"
+  echo "gcloud and k8s configs have been cleared"
   echo ""
 else
-  export K8S_CONTEXT=gke_${GCP_PROJECT_ID}_${GCP_ZONE}_${KLUSTER}
-fi
+  if [ "$1" == "--vector" ] ; then
+    export K8S_CONTEXT=gke_${GCP_PROJECT_ID}_${GCP_ZONE}_tegola-${GCP_ZONE}
+    echo ""
+    echo "Setting k8s context for vector tile cluster"
+    echo ""
+  else
+    export K8S_CONTEXT=gke_${GCP_PROJECT_ID}_${GCP_ZONE}_${KLUSTER}
+  fi
 
-echo "gcp project: ${GCP_PROJECT_ID}"
-echo "gcp zone: ${GCP_ZONE}"
-gcloud config set project ${GCP_PROJECT_ID}
-gcloud config set compute/zone ${GCP_ZONE}
-kubectl config use-context ${K8S_CONTEXT}
+  echo "gcp project: ${GCP_PROJECT_ID}"
+  echo "gcp zone: ${GCP_ZONE}"
+  gcloud config set project ${GCP_PROJECT_ID}
+  gcloud config set compute/zone ${GCP_ZONE}
+  kubectl config use-context ${K8S_CONTEXT}
+fi

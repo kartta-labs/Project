@@ -62,7 +62,7 @@ set +x
 add_secret ${secrets_env_file} NOTER_BUCKET "noter-${BUCKET_SUFFIX}"
 set -x
 gsutil mb -p ${GCP_PROJECT_ID} gs://${NOTER_BUCKET}
-gsutil iam ch serviceAccount:noter-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer gs://${NOTER_BUCKET}
+gsutil iam ch serviceAccount:noter-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer,legacyBucketWriter,legacyBucketReader,legacyBucketOwner gs://${NOTER_BUCKET}
 
 ###
 ### services
