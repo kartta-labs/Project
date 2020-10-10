@@ -58,7 +58,8 @@ __ENDIF1__
     # requests from iD editor routed to cgimap:8000 via fastcgi
     #
     location ~ ^${EDITOR_SITE_PREFIX}/api/0\.6/map.*${D} {
-        include /etc/nginx/shared-conf/oauth-proxy.conf;
+#       include /etc/nginx/shared-conf/oauth-proxy.conf;
+set $email kekkonen.kan@gmail.com;
         include /etc/nginx/fastcgi_params;
         fastcgi_pass cgimap:8000;
         access_log /var/log/nginx/api.map.access.log combined;
