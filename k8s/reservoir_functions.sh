@@ -17,17 +17,6 @@
 # This file contains bash functions used by various scripts in this direcotry.
 # Don't run this file directly -- it gets loaded by other files.
 
-export reservoir_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
-. ./container/secrets/secrets.env
-. ${reservoir_script_dir}/functions.sh
-
-# Name of cloud-sql instance.
-export RESERVOIR_DB_INSTANCE="reservoir-db"
-export RESERVOIR_DB_NAME="reservoir"
-export RESERVOIR_SA="reservoir-sa"
-export RESERVOIR_DB_SECRETS="reservoir-db"
-
 function LOG {
   echo "[reservoir_functions:${LEVEL} $(date +"%Y-%m-%d %T %Z")] $@"
 }
@@ -39,6 +28,28 @@ function LOG_INFO {
 function LOG_ERROR {
   LEVEL="ERROR" LOG $@
 }
+
+export reservoir_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+if [ -z "${SECRETS_FILE}" ] 
+  then
+    LOG "secrets_env_file unset, setting to ./container/secrets/secrets.env"
+    export SECRETS_FILE="./container/secrets/secrets.env"
+    export secrets_env_file="${SECRETS_FILE}"
+    LOG_INFO "SECRETS_FILE: ${SECRETS_FILE}"
+    LOG_INFO "secrets_env_file: ${secrets_env_file}"
+fi
+
+. ${SECRETS_FILE}
+. ${reservoir_script_dir}/functions.sh
+
+# Name of cloud-sql instance.
+export RESERVOIR_DB_INSTANCE="reservoir-db"
+export RESERVOIR_DB_NAME="reservoir"
+export RESERVOIR_SA="reservoir-sa"
+export RESERVOIR_DB_SECRETS="reservoir-db"
+
+
 
 function generate_random_suffix {
   # Generates a random 16-character password that can be used as a bucket name suffix
