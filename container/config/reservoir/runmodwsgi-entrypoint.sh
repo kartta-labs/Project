@@ -38,7 +38,7 @@ done
 log "Connected to Reservoir DB."
 
 log "Attempting to connect to Editor DB."
-EDITOR_DB_URL="postgres://${EDITOR_DB_USER}:${EDITOR_DB_PASSWORD}@${EDITOR_DB_HOST}"
+EDITOR_DB_URL="postgresql://${EDITOR_DB_USER}:${EDITOR_DB_PASSWORD}@${EDITOR_DB_HOST}/${EDITOR_DB_NAME}"
 
 until psql ${EDITOR_DB_URL} -c '\l'; do
   log "Waiting for Editor DB, sleeping..."
