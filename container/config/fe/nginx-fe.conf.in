@@ -166,6 +166,12 @@ __ENDIF1__
       access_log /var/log/nginx/kartta.access.log combined;
     }
 
+    location = /copyright {
+      proxy_pass http://kartta:${KARTTA_PORT}/copyright.html;
+      proxy_redirect off;
+      access_log /var/log/nginx/kartta.access.log combined;
+    }
+
     location / {
 __IF1${FORCE_ALL_AUTH}THEN__
 include /etc/nginx/shared-conf/oauth-proxy.conf;

@@ -5,22 +5,21 @@ echo "foo"
 . /container/secrets/secrets.env
 
 function log {
-    echo "[runmodwsgi entrypoint $(date)]: $1"
+    echo "[RESERVOIR runmodwsgi entrypoint $(date)]: $1"
 }
 
 log "Changing permissions on fs mount."
 
 log "RESERVOIR_DEBUG: ${RESERVOIR_DEBUG}"
-
 log "RESERVOIR_SITE_PREFIX: ${RESERVOIR_SITE_PREFIX}"
-
 log "RESERVOIR_STATIC_URL: ${RESERVOIR_STATIC_URL}"
-
 log "RESERVOIR_MODEL_DIR: ${RESERVOIR_MODEL_DIR}"
-
 log "RESERVOIR_DB_HOST: $RESERVOIR_DB_HOST"
-
 log "RESERVOIR_DB_PORT: $RESERVOIR_DB_PORT"
+
+log "EDITOR_DB_NAME: ${EDITOR_DB_NAME}"
+log "EDITOR_DB_USER: ${EDITOR_DB_USER}"
+log "EDITOR_DB_HOST: ${EDITOR_DB_HOST}"
 
 chown -R :www-data /reservoir/models
 chmod -R a+wr /reservoir/models
@@ -29,11 +28,24 @@ log "Checking permissions for /reservoir/models: $(ls -laF /reservoir/models)"
 
 CONNECTION_URL="postgresql://${RESERVOIR_DB_USER}:${RESERVOIR_DB_PASSWORD}@${RESERVOIR_DB_HOST}:${RESERVOIR_DB_PORT}/${RESERVOIR_DB_NAME}"
 
+log "Attempting to connect to Reservoir DB."
+
 until psql ${CONNECTION_URL} -c '\l'; do
-  >&2 echo "Waiting for postgres, sleeping."
+  log "Waiting for postgres, sleeping."
   sleep 10s
 done
 
+log "Connected to Reservoir DB."
+
+log "Attempting to connect to Editor DB."
+EDITOR_DB_URL="postgresql://${EDITOR_DB_USER}:${EDITOR_DB_PASSWORD}@${EDITOR_DB_HOST}/${EDITOR_DB_NAME}"
+
+until psql ${EDITOR_DB_URL} -c '\l'; do
+  log "Waiting for Editor DB, sleeping..."
+  sleep 10s
+done
+
+log "Connected to Editor DB."
 
 cd /reservoir
 
