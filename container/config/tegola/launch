@@ -7,4 +7,5 @@ exec env -i - \
   DB_USER="tegola" \
   DB_PASSWORD="${TEGOLA_TEGOLA_PASSWORD}" \
   REDIS_ADDRESS="${TEGOLA_REDIS_ADDRESS}" \
+  ANTIQUE_ATTRIBUTION="${TEGOLA_ANTIQUE_ATTRIBUTION}" \
   /opt/tegola serve --config /container/config/tegola/tegola-config.toml
