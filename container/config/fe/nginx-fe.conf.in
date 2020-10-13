@@ -117,6 +117,9 @@ __IF${ENABLE_RESERVOIR}THEN__
     }
     
     location /r/ {
+# temporary to faciliate local kscope debugging:
+add_header 'Access-Control-Allow-Origin' '*';
+add_header 'Access-Control-Allow-Headers' '*';
         include /etc/nginx/shared-conf/oauth-proxy.conf;
         proxy_pass http://reservoir:${RESERVOIR_PORT};
         access_log /var/log/nginx/reservoir.access.log combined;
@@ -124,6 +127,9 @@ __IF${ENABLE_RESERVOIR}THEN__
     }
 
     location /r/api/ {
+# temporary to faciliate local kscope debugging:
+add_header 'Access-Control-Allow-Origin' '*';
+add_header 'Access-Control-Allow-Headers' '*';
         proxy_pass http://reservoir:${RESERVOIR_PORT};
         access_log /var/log/nginx/reservoir.api.access.log combined;
         error_log /var/log/nginx/reservoir.api.error.log info;
