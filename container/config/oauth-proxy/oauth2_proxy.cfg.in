@@ -71,7 +71,7 @@ client_secret = "${OAUTH_PROXY_CLIENT_SECRET}"
 ## skip SSL checking for HTTPS requests
 # ssl_insecure_skip_verify = false
 
-scope = "email profile"
+scope = "email"
 set_xauthrequest = true
 pass_access_token = true
 pass_user_headers = true
