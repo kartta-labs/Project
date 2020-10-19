@@ -5,8 +5,7 @@
 /iD
 /warper
 /openstreetmap-cgimap
-/container/secrets/secrets.env
-/container/secrets/warper-service-account.json
+/container/secrets
 /.docker-compose.yml
 /tmp
 /h3dmr
