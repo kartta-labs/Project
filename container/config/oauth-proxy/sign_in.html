@@ -26,7 +26,10 @@
         }
         .btn {
                 color: #fff;
-                background-color: #428bca;
+                background-image: url('/assets/google-signin.png');
+                background-size: 191px 46px;
+                height: 46px;
+                width: 191px;
                 border: 1px solid #357ebd;
                 -webkit-border-radius: 4;
                 -moz-border-radius: 4;
@@ -94,7 +97,7 @@
         {{ if .SignInMessage }}
         <p>{{.SignInMessage}}</p>
         {{ end}}
-        <button type="submit" class="btn">Sign in with {{.ProviderName}}</button><br/>
+        <button type="submit" class="btn"></button><br/>
         </form>
         </div>
 
