@@ -290,5 +290,5 @@ function rolling_update {
   app=$1
   tag=$(gcloud container images --format=json list-tags gcr.io/${GCP_PROJECT_ID}/${app} | ./k8s/klatest_tag)
   kubectl set image deployment ${app} ${app}=gcr.io/${GCP_PROJECT_ID}/${app}:${tag}
-  kubectl rollout restart ${app}
+  kubectl rollout restart deployment ${app}
 }
