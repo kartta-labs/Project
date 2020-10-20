@@ -145,6 +145,19 @@ function clone_reservoir {
   fi
 }
 
+function reservoir_get_or_create_admin_password {
+  LINE=$(grep RESERVOIR_ADMIN_PASSWORD ${SECRETS_FILE})
+
+  if [ -z "$LINE" ]; then
+    add_secret ${SECRETS_FILE} RESERVOIR_ADMIN_PASSWORD $(generate_random_suffix 8)
+  else
+    RESERVOIR_ADMIN_PASSWORD=$(echo ${RESERVOIR_ADMIN_PASSWORD} | awk '{ print $NF }')
+    RESERVOIR_ADMIN_PASSWORD="${RESERVOIR_ADMIN_PASSWORD%\"}"
+    RESERVOIR_ADMIN_PASSWORD="${RESERVOIR_ADMIN_PASSWORD#\"}"
+    echo $RESERVOIR_ADMIN_PASSWORD
+  fi
+}
+
 function reservoir_cloud_build {
   if [ ! -d "./reservoir" ]; then
     clone_reservoir
@@ -408,6 +421,8 @@ function reservoir_deploy_prod {
   add_secret ${secrets_env_file} RESERVOIR_SITE_PREFIX "r"
   add_secret ${secrets_env_file} RESERVOIR_STATIC_URL "/r/static/"
   add_secret ${secrets_env_file} RESERVOIR_MODEL_DIR "/reservoir/models"
+  admin_pwd=$(reservoir_get_or_create_admin_password)
+  LOG_INFO "Admin password: ${admin_pwd}"
 
   sed -i "/RESERVOIR_PORT/ c export RESERVOIR_PORT=80" "${SECRETS_FILE}"
   
