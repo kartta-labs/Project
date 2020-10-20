@@ -292,3 +292,59 @@ function rolling_update {
   kubectl set image deployment ${app} ${app}=gcr.io/${GCP_PROJECT_ID}/${app}:${tag}
   kubectl rollout restart ${app}
 }
+
+
+# Make sure container/secrets is clean and up to date; exit with error message if not.
+# This function executes a "git pull" in container/secrets to make sure the local dir
+# contains any new updates from remote.  It does not, however, automatically push any
+# local updates to remote -- it just checks for them and exits if there are any.
+function ensure_synced_secrets {
+  cd ./container/secrets
+
+  # initial check for clean working dir
+  if output=$(git status --porcelain) && [ -z "$output" ]; then
+    : # Working directory clean, continue below
+  else
+    echo ""
+    echo "You appear to have uncommited changes in ./container/secrets."
+    echo "Please commit and push them, then try again."
+    echo ""
+    exit -1
+  fi
+
+  # pull from remote
+  if git pull origin master; then
+    : # pull was successful, continue below
+  else
+    echo ""
+    echo "There was an issue updating your ./container/secrets."
+    echo "Please ensure it is up to date and clean, then try again."
+    echo ""
+    exit -1
+  fi    
+
+  # second check for clean working dir, in case the pull above resulting in
+  # any issues
+  if output=$(git status --porcelain) && [ -z "$output" ]; then
+    : # Working directory clean, continue below
+  else
+    echo ""
+    echo "There was an issue updating your ./container/secrets."
+    echo "Please ensure it is up to date and clean, then try again."
+    echo ""
+    exit -1
+  fi
+
+  # check for unpushed local commits
+  if [ -z "$(git status -sb | grep ahead)" ]; then
+    : # local dir is not ahead of remote
+  else
+    echo ""
+    echo "You appear to have unpushed commits in ./container/secrets."
+    echo "Please push them, then try again."
+    echo ""
+    exit -1
+  fi
+
+  cd ../..
+}

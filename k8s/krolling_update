@@ -5,6 +5,9 @@
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 . ${script_dir}/functions.sh
 
+git pull origin re-brand # update Project repo
+ensure_synced_secrets
+
 ${script_dir}/resecret
 
 rolling_update $1
