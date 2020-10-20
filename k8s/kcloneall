@@ -11,7 +11,9 @@ clone_repo "${CGIMAP_REPO}" openstreetmap-cgimap
 clone_repo "${KSCOPE_REPO}" kscope
 clone_repo "${RESERVOIR_REPO}" reservoir
 clone_repo "${KARTTA_REPO}" kartta
-clone_repo "${ANTIQUE_REPO}" antique kartta
+clone_repo "${ANTIQUE_REPO}" antique kartta  # for use by kartta
 clone_repo "${RESERVOIR_REPO}" reservoir
 clone_repo "${NOTER_BACKEND_REPO}" noter-backend
 clone_repo "${NOTER_FRONTEND_REPO}" noter-frontend
+clone_repo "${TEGOLA_REPO}" tegola
+clone_repo "${ANTIQUE_REPO}" antique # for use by tegola
