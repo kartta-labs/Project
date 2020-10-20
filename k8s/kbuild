@@ -5,6 +5,6 @@
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 . ${script_dir}/functions.sh
 
-update_repos $app # in re-brand branch, force repo(s) update before building
+update_repos $1 # in re-brand branch, force repo(s) update before building
 
 cloud_build $1
