@@ -186,6 +186,24 @@ function build_sha {
   fi
 }
 
+# Return the deployed branch for a repo.
+# Usage is like
+#    repo_branch "${SOME_REPO}"
+# where SOME_REPO is one of the *_REPO vars defined in secrets.env (e.g. MAPWARPER_REPO).
+# Note the double-quite delimeters are required.
+function repo_branch {
+  repo=$1
+  branch=$(echo "$repo" | sed -n 's/^.*--branch \([^ ]*\).*$/\1/p')
+  if [ -z "$branch" ]; then
+    echo "master"
+  else
+    echo "$branch"
+  fi
+}
+
+
+
+
 # Return the directory (relative to Project/) for cloud builds for an app.
 function build_dir {
   app=$1
@@ -198,6 +216,55 @@ function build_dir {
   else
     echo "."
   fi
+}
+
+function update_repos {
+    app=$1
+    case $app in
+        cgimap)
+	    git pull origin re-brand # update Project repo
+            (cd openstreetmap-cgimap ; git pull origin $(repo_branch "${CGIMAP_REPO}"))
+            ;;
+        editor)
+	    git pull origin re-brand # update Project repo
+            (cd editor-website ; git pull origin $(repo_branch "${EDITOR_REPO}"))
+            ;;
+        fe)
+	    git pull origin re-brand # update Project repo
+            ;;
+        kartta)
+	    git pull origin re-brand # update Project repo
+            (cd kartta ; git pull origin $(repo_branch "${KARTTA_REPO}"))
+            (cd kartta/antique ; git pull origin $(repo_branch "${ANTIQUE_REPO}"))
+            ;;
+        noter-backend)
+	    git pull origin re-brand # update Project repo
+            (cd noter-backend ; git pull origin $(repo_branch "${NOTER_BACKEND_REPO}"))
+            ;;
+        noter-frontend)
+	    git pull origin re-brand # update Project repo
+            (cd noter-frontend ; git pull origin $(repo_branch "${NOTER_FRONTEND_REPO}"))
+            ;;
+        oauth-proxy)
+	    git pull origin re-brand # update Project repo
+            ;;
+        reservoir)
+	    git pull origin re-brand # update Project repo
+            (cd reservoir ; git pull origin $(repo_branch "${RESERVOIR_REPO}"))
+            ;;
+        warper)
+	    git pull origin re-brand # update Project repo
+            (cd warper ; git pull origin $(repo_branch "${MAPWARPER_REPO}"))
+            ;;
+        tegola)
+	    git pull origin re-brand # update Project repo
+            (cd tegola ; git pull origin $(repo_branch "${TEGOLA_REPO}"))
+            (cd antique ; git pull origin $(repo_branch "${ANTIQUE_REPO}"))
+            ;;
+        *)
+	    echo 'CATCHALL'
+            ;;
+    esac
 }
 
 function cloud_build {
@@ -223,4 +290,5 @@ function rolling_update {
   app=$1
   tag=$(gcloud container images --format=json list-tags gcr.io/${GCP_PROJECT_ID}/${app} | ./k8s/klatest_tag)
   kubectl set image deployment ${app} ${app}=gcr.io/${GCP_PROJECT_ID}/${app}:${tag}
+  kubectl rollout restart ${app}
 }
