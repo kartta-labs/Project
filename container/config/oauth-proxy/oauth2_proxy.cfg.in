@@ -66,7 +66,7 @@ client_secret = "${OAUTH_PROXY_CLIENT_SECRET}"
 
 ## Templates
 ## optional directory with custom sign_in.html and error.html
-# custom_templates_dir = ""
+custom_templates_dir = "/container/config/oauth-proxy"
 
 ## skip SSL checking for HTTPS requests
 # ssl_insecure_skip_verify = false
