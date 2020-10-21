@@ -230,6 +230,7 @@ function update_repos {
             (cd editor-website ; git pull origin $(repo_branch "${EDITOR_REPO}"))
             ;;
         fe)
+	    (cd kscope ; git pull origin $(repo_branch "${KSCOPE_REPO}"))
 	    git pull origin re-brand # update Project repo
             ;;
         kartta)
