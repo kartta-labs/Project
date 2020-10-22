@@ -49,13 +49,25 @@ export RESERVOIR_DB_NAME="reservoir"
 export RESERVOIR_SA="reservoir-sa"
 export RESERVOIR_DB_SECRETS="reservoir-db"
 
-
-
 function generate_random_suffix {
   # Generates a random 16-character password that can be used as a bucket name suffix
   local LENGTH="${1:-15}"
   echo "b`(date ; dd if=/dev/urandom count=2 bs=1024) 2>/dev/null | md5sum | head -c ${LENGTH}`"
 }
+
+function generate_reservoir_secret_key {
+  LINE=$(grep RESERVOIR_SECRET_KEY ${secrets_env_file})
+    
+  if [ -z "$LINE" ]; then
+    LOG_INFO "Adding secret key."
+    RESERVOIR_SECRET_KEY="$(generate_random_suffix 32)"
+    add_secret ${secrets_env_file} RESERVOIR_SECRET_KEY "${RESERVOIR_SECRET_KEY}"
+  else
+    LOG_INFO "Reservoir secret key already specified, skipping."
+  fi
+}
+
+generate_reservoir_secret_key
 
 function create_waybak_test_project {
   export WYBK_ORG_ID=344127236084
