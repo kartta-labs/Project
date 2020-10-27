@@ -49,13 +49,13 @@ spec:
           livenessProbe:
             tcpSocket:
               port: 8088
-            initialDelaySeconds: 8
+            initialDelaySeconds: 120
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /
               port: 8088
-            initialDelaySeconds: 10
+            initialDelaySeconds: 120
             periodSeconds: 10
             timeoutSeconds: 5
           volumeMounts:
