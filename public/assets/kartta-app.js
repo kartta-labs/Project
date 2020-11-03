@@ -64,6 +64,46 @@
     return el;
   }
 
+
+  /**
+   * Enhances a url with hash values and/or url parameters from the
+   * current page, in order to preserve some state when switching
+   * applications.
+   *
+   * @param url (String) A url from one of the 'menuItems' array above.
+   *
+   * @returns (String) the enhanced url
+   */
+  function enhancedMenuUrl(url) {
+    // When navigating from kartta (location "/") to editor (url "/e/"), propagate
+    // zoom,lat,lon to preserve the current map view.  Note that for some reason
+    // the zoom levels differ by 1, and editor only recognizes integer zoom levels.
+    if (window.location.pathname == "/" && url == "/e/") {
+      const m = window.location.hash.match(/#([\d.]+)\/([-\d.]+)\/([-\d.]+)/);
+      if (m.length == 4) {
+        const zoom = Math.floor(parseFloat(m[1])) + 1;
+        const lat = m[2];
+        const lon = m[3];
+        return url + "#map=" + zoom + "/" + lat + "/" + lon;
+      }
+    }
+
+    // When navigating from editor or id (location prefix "/e/") to kartta (url = "/"),
+    // propagate zoom,lat,lon to preserve the current map view.
+    if (window.location.pathname.startsWith("/e/") && url == "/") {
+      const m = window.location.hash.match(/#map=([\d.]+)\/([-\d.]+)\/([-\d.]+)/);
+      if (m.length == 4) {
+        const zoom = parseFloat(m[1]) - 1;
+        const lat = m[2];
+        const lon = m[3];
+        return url + "#" + zoom + "/" + lat + "/" + lon;
+      }
+    }
+
+    // Otherwise no enhancement
+    return url;
+  }
+
   function createMenuItem(text, url) {
     const elA = document.createElement("a");
     elA.setAttribute("href", url);
@@ -72,13 +112,15 @@
     elDiv.innerHTML = text;
     elA.appendChild(elDiv);
     elDiv.addEventListener('click', (e) => {
-      window.location.href = (
-          window.location.protocol
-              + "//"
-              + window.location.hostname
-              + (window.location.port != "" ? (":" + window.location.port) : "")
-              + url
-      );
+    const href = (
+       window.location.protocol
+            + "//"
+            + window.location.hostname
+            + (window.location.port != "" ? (":" + window.location.port) : "")
+            + enhancedMenuUrl(url)
+    );
+    window.location.href = href;
+    e.preventDefault();
     });
     return elA;
   }
