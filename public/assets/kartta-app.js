@@ -100,6 +100,24 @@
       }
     }
 
+    // When navivating from kscope (location prefix "/3d/") to kartta (url = "/"),
+    // propagate year, lat, lon, and set kartta zoom level to 18.
+    if (window.location.pathname.startsWith("/3d/") && url == "/") {
+      const params = (new URL(document.location)).searchParams;
+      if (params.has("year") && params.has("lat") && params.has("lon")) {
+        return url + "?year=" + params.get("year") + "#18/" + params.get("lat") + "/" + params.get("lon");
+      }
+    }
+
+    // When navivating from kscope (location prefix "/3d/") to editor (url = "/e/"),
+    // propagate lat, lon, and set kartta zoom level to 18.
+    if (window.location.pathname.startsWith("/3d/") && url == "/e/") {
+      const params = (new URL(document.location)).searchParams;
+      if (params.has("lat") && params.has("lon")) {
+        return url + "#map=19/" + params.get("lat") + "/" + params.get("lon");
+      }
+    }
+
     // Otherwise no enhancement
     return url;
   }
