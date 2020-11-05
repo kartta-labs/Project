@@ -1,0 +1,19 @@
+#!/bin/sh
+
+echo "Sourcing secrets."
+. /container/secrets/secrets.env
+
+echo "Checking clodproxy sidecar access."
+CONNECTION_URL="postgresql://${RESERVOIR_DB_USER}:${RESERVOIR_DB_PASSWORD}@${RESERVOIR_DB_HOST}:${RESERVOIR_DB_PORT}/${RESERVOIR_DB_NAME}"
+
+until psql ${CONNECTION_URL} -c '\l'; do
+   >&2 echo "RESERVOIR: Waiting to connect to sidecar proxy, sleeping 10s."
+done
+
+echo "Cloud proxy ready."
+
+echo "Deleting all models entrypoint start."
+
+python3 /reservoir/manage.py runscript delete_all_models
+
+echo "Delete all models entrypoint complete."
