@@ -77,6 +77,11 @@ function generate_secret_key {
   echo "k`(date ; dd if=/dev/urandom count=2 bs=1024) 2>/dev/null | md5sum | head -c 15`"
 }
 
+function generate_secret_key50 {
+  # Generates a random 50-character string that can be used as a secret key value
+  echo "k`((date ; dd if=/dev/urandom count=2 bs=1024) | sha512sum -b | head -c 49) 2>/dev/null`"
+}
+
 function wait_for_k8s_job {
   # usage:
   #   wait_for_k8s_job JOB

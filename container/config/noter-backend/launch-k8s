@@ -4,7 +4,7 @@
 
 . /container/secrets/secrets.env
 
-export DJANGO_SETTINGS_MODULE="noter_backend.dev_settings"
+export DJANGO_SETTINGS_MODULE="noter_backend.prod_settings"
 export DATABASE_URL="postgres://${NOTER_BACKEND_DB_USER}:${NOTER_BACKEND_POSTGRES_PASSWORD}@${NOTER_BACKEND_DB_HOST}:5432"
 export NOTER_DB_NAME="noterdb"
 export NOTER_DB_USER=${NOTER_BACKEND_DB_USER}
@@ -13,6 +13,9 @@ export NOTER_DB_HOST=${NOTER_BACKEND_DB_HOST}
 export NOTER_GS_MEDIA_BUCKET_NAME=${NOTER_BUCKET}
 export GOOGLE_APPLICATION_CREDENTIALS="/container/secrets/noter-service-account.json"
 export NOTER_LOOKUP_ENDPOINTS_YAML="/etc/lookup_endpoints.yaml"
+
+echo "launch-k8s:NOTER_BACKEND_DEBUG=${NOTER_BACKEND_DEBUG}"
+echo "launch-k8s:NOTER_BACKEND_SECRET_KEY=${NOTER_BACKEND_SECRET_KEY}"
 
 if [[ -z "${NOTER_GS_MEDIA_BUCKET_NAME}" ]]; then
   export PROTECTED_MEDIA_URL="alias /media/;"
