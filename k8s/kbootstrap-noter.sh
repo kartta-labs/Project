@@ -111,6 +111,9 @@ set -x
 # Don't delete this job for now, to make it possible to view its logs.
 #kubectl delete job noter-db-migration
 
+# generate application secret key
+add_secret ${secrets_env_file} NOTER_BACKEND_SECRET_KEY $(generate_secret_key50)
+
 ###
 ### deploy applications
 ###
