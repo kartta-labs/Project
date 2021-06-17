@@ -1,0 +1,48 @@
+# Assumes ./container/secrets/secrets.env has been properly 
+# populated before invocation. Also, caller / script needs
+# to populate ./container/secrets/cronjob-service-account.json
+
+FROM debian:buster-slim as buildz
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && \
+  apt-get install -y --no-install-recommends \
+    git build-essential automake autoconf \
+    libxml2-dev libboost-dev libboost-program-options-dev \
+    libboost-date-time-dev libboost-filesystem-dev \
+    libboost-thread-dev libboost-iostreams-dev \
+    libosmpbf-dev osmpbf-bin libprotobuf-dev pkg-config \
+    ca-certificates curl gettext-base
+RUN mkdir -p /src
+WORKDIR /src
+RUN git clone https://github.com/zerebubuth/planet-dump-ng
+WORKDIR planet-dump-ng
+RUN ./autogen.sh
+RUN ./configure
+RUN make
+WORKDIR /src
+RUN curl https://storage.googleapis.com/pub/gsutil.tar.gz -o gsutil.tar.gz
+COPY ./container/tools/subst /tmp
+COPY ./container/secrets/secrets.env /tmp
+COPY ./container/config/cronjob/boto.in /tmp
+RUN /tmp/subst /tmp/secrets.env \
+  /tmp/boto.in /root/boto && rm -f /tmp/*
+
+FROM debian:buster-slim
+RUN apt-get update -qq && \
+  apt-get install -y --no-install-recommends \
+    libxml2 libprotobuf17 libprotobuf-lite17 \
+    libboost-filesystem1.67 libboost-thread1.67 \
+    libboost-date-time1.67 libboost-system1.67 \
+    libboost-iostreams1.67 \
+    osmium-tool postgresql-client python
+COPY --from=buildz /src/planet-dump-ng/planet-dump-ng /usr/bin
+COPY --from=buildz /root/boto /root/.boto
+COPY --from=buildz /src/gsutil.tar.gz /tmp
+RUN tar xzf /tmp/gsutil.tar.gz -C /usr/local && \
+  rm /tmp/gsutil.tar.gz && \
+  ln -s /usr/local/gsutil/gsutil /usr/local/bin/gsutil
+
+ENTRYPOINT ["tail", "-f", "/dev/null"]
+

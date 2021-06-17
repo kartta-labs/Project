@@ -1,0 +1,9 @@
+[Credentials]
+gs_service_key_file = /container/secrets/cronjob-service-account.json
+[Boto]
+https_validate_certificates = True
+[GSUtil]
+content_language = en
+default_api_version = 2
+default_project_id = ${GCP_PROJECT_ID}
+
