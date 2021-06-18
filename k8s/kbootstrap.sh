@@ -61,6 +61,15 @@ add_secret ${secrets_env_file} CLOUDBUILD_LOGS_BUCKET "gs://cloudbuild-logs-${cl
 gsutil mb -p ${GCP_PROJECT_ID} ${CLOUDBUILD_LOGS_BUCKET}
 PROJECT_NUMBER=`gcloud projects list "--filter=${GCP_PROJECT_ID}" "--format=value(PROJECT_NUMBER)"`
 gsutil iam ch serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com:objectAdmin,objectCreator,objectViewer,legacyBucketWriter ${CLOUDBUILD_LOGS_BUCKET}
+# create autoscaling node pool for cron jobs
+gcloud container node-pools create jobs-pool \
+  --cluster=${KLUSTER} --zone=${GCP_ZONE} --project=${GCP_PROJECT_ID} \
+  --machine-type=e2-standard-8  --disk-size=500GB --min-nodes=0 --max-nodes=3 \
+  --node-labels=load=on-demand --node-taints=reserved-pool=true:NoSchedule --enable-autoscaling
+gcloud iam service-accounts create cronjob-sa --display-name 'storage access for cron jobs'
+gcloud iam service-accounts keys create /tmp/cronjob-service-account.json --iam-account cronjob-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+cat /tmp/cronjob-service-account.json > container/secrets/cronjob-service-account.json
+rm -f /tmp/cronjob-service-account.json
 
 #TODO: determine whether warper really uses this service account, and if not, get rid of it
 gcloud iam service-accounts create warper-sa --display-name 'warper access for storage and cloud sql'
@@ -218,6 +227,13 @@ wait_for_k8s_job editor-db-migration
 set -x
 # Don't delete this job for now, to make it possible to view its logs.
 #kubectl delete job editor-db-migration
+# storage bucket for editor db extracts
+add_secret ${secrets_env_file} EDITOR_DB_DUMP_BUCKET "editor-db-dump-${BUCKET_SUFFIX}"
+gsutil mb -p ${GCP_PROJECT_ID} gs://${EDITOR_DB_DUMP_BUCKET}
+gsutil iam ch serviceAccount:cronjob-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com:objectAdmin,objectCreator,objectViewer,legacyBucketWriter,legacyBucketReader,legacyBucketOwner gs://${EDITOR_DB_DUMP_BUCKET}
+echo '{"rule": [{"action": {"type": "Delete"}, "condition": {"age": 31}}]}' > /tmp/lifecycle.json
+gsutil lifecycle set /tmp/lifecycle.json gs://${EDITOR_DB_DUMP_BUCKET}
+rm /tmp/lifecycle.json
 
 ###
 ### warper database
