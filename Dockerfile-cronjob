@@ -26,6 +26,9 @@ RUN curl https://storage.googleapis.com/pub/gsutil.tar.gz -o gsutil.tar.gz
 COPY ./container/tools/subst /tmp
 COPY ./container/secrets/secrets.env /tmp
 COPY ./container/config/cronjob/boto.in /tmp
+RUN cat /tmp/secrets.env > /tmp/x && \
+  echo 'echo ${EDITOR_DB_HOST}:*:${EDITOR_DB_NAME}:karttaweb:${EDITOR_SQL_KARTTAWEB_PASSWORD}' >>/tmp/x && \
+  /bin/sh /tmp/x > ~/.pgpass && chmod 0600 ~/.pgpass && rm -f /tmp/x
 RUN /tmp/subst /tmp/secrets.env \
   /tmp/boto.in /root/boto && rm -f /tmp/*
 
@@ -40,9 +43,11 @@ RUN apt-get update -qq && \
 COPY --from=buildz /src/planet-dump-ng/planet-dump-ng /usr/bin
 COPY --from=buildz /root/boto /root/.boto
 COPY --from=buildz /src/gsutil.tar.gz /tmp
+COPY --from=buildz /root/.pgpass /root/.pgpass
 RUN tar xzf /tmp/gsutil.tar.gz -C /usr/local && \
   rm /tmp/gsutil.tar.gz && \
   ln -s /usr/local/gsutil/gsutil /usr/local/bin/gsutil
+COPY ./k8s/cronjobs/dump-editor-db /etc/dump-editor-db
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]
 
