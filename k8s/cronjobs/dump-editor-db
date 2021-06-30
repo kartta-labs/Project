@@ -1,0 +1,37 @@
+. /container/secrets/secrets.env
+
+export BASE=/data
+export DD=`date -I`
+export DIR=$BASE/$DD
+export BUCKET=$EDITOR_DB_DUMP_BUCKET
+export PREV=`gsutil ls $BUCKET |sort |tail -1 |sed -e "s|^$BUCKET/||" -e "s|/$||"`
+
+rm -fr $BASE
+mkdir -p $DIR && \
+  cd $DIR && \
+  pg_dump -U karttaweb -h $EDITOR_DB_HOST  -F d -j 8 \
+    -f $DIR/pgdb-$DD editor_production && \
+  planet-dump-ng -f $DIR/pgdb-$DD \
+    -p $DIR/planet-$DD.pbf > $DIR/extract-$DD.log 2>&1
+
+if [ $? = 0 ]
+then
+  gsutil -q cp $DIR/planet-$DD.pbf $BUCKET/$DD/planet-$DD.pbf \
+     >> $DIR/extract-$DD.log 2>&1
+  gsutil -q cp $BUCKET/$PREV/planet-$PREV.pbf $DIR/prev.pbf \
+     >> $DIR/extract-$DD.log 2>&1  
+  osmium derive-changes $DIR/prev.pbf $DIR/planet-$DD.pbf \
+    -o $DIR/$PREV--$DD.osc.gz >> $DIR/extract-$DD.log 2>&1
+  gsutil -q cp $DIR/$PREV--$DD.osc.gz $BUCKET/$DD/$PREV--$DD.osc.gz \
+     >> $DIR/extract-$DD.log 2>&1
+  gsutil -q cp $DIR/extract-$DD.log $BUCKET/$DD/extract-$DD.log
+  if [ $? = 0 ]
+  then
+    touch $DIR/DONE
+    gsutil -q cp $DIR/DONE $BUCKET/$DD/DONE
+  fi
+else
+  exit 1
+fi
+
+
