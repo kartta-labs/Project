@@ -154,6 +154,7 @@ cloud_build fe
 cloud_build editor
 cloud_build cgimap
 cloud_build warper
+cloud_build cronjob
 if [ "${ENABLE_KARTTA}" != "" ]; then
   cloud_build kartta
 fi
