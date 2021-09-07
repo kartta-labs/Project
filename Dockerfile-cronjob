@@ -39,7 +39,7 @@ RUN apt-get update -qq && \
     libboost-filesystem1.67 libboost-thread1.67 \
     libboost-date-time1.67 libboost-system1.67 \
     libboost-iostreams1.67 \
-    osmium-tool postgresql-client python
+    osmium-tool osm2pgsql postgresql-client python
 COPY --from=buildz /src/planet-dump-ng/planet-dump-ng /usr/bin
 COPY --from=buildz /root/boto /root/.boto
 COPY --from=buildz /src/gsutil.tar.gz /tmp
@@ -48,6 +48,8 @@ RUN tar xzf /tmp/gsutil.tar.gz -C /usr/local && \
   rm /tmp/gsutil.tar.gz && \
   ln -s /usr/local/gsutil/gsutil /usr/local/bin/gsutil
 COPY ./k8s/cronjobs/dump-editor-db /etc/dump-editor-db
+COPY ./k8s/cronjobs/tegola-update /etc/tegola-update
+COPY ./k8s/cronjobs/tegola-update.py /etc/tegola-update.py
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]
 
